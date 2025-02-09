@@ -1,0 +1,135 @@
+[
+  {
+    "name": "Named",
+    "type": "object",
+    "abstract": true,
+    "properties": {
+      "fullName": {
+        "description": "The full name of the user",
+        "type": "string",
+        "default": "Guy",
+        "validate": {
+          "maxLength": 255,
+          "required": true,
+          "email": true,
+          "url": true,
+          "regex": "/1[][231]232"
+        }
+      }
+    }
+  },
+  {
+    "name": "Person",
+    "type": "object",
+    "abstract": true,
+    "extends": [
+      "Named"
+    ],
+    "properties": {}
+  },
+  {
+    "name": "Action",
+    "type": "entity",
+    "visibility": "system",
+    "properties": {}
+  },
+  {
+    "name": "User",
+    "type": "entity",
+    "visibility": "public",
+    "extends": "Person",
+    "operations": [
+      "add-one",
+      "get-one",
+      "edit-one",
+      "del-one",
+      "publish"
+    ],
+    "permissions": {
+      "*": [
+        "publish"
+      ],
+      "guest": "*"
+    },
+    "properties": {
+      "kind": {
+        "type": "UserKind",
+        "required": true,
+        "default": "Administrator"
+      },
+      "contactId": {
+        "type": "string",
+        "required": false,
+        "references": {
+          "entity": "Action",
+          "field": "id",
+          "onDelete": "Cascade",
+          "onUpdate": "NoAction"
+        }
+      },
+      "contactInfoIds": {
+        "required": true,
+        "type": "list",
+        "of": {
+          "type": "string"
+        },
+        "references": {
+          "entity": "ContactInfo",
+          "field": "id",
+          "onDelete": "cascade",
+          "onUpdate": "noaction"
+        }
+      },
+      "contact": {
+        "type": "ContactInfo"
+      },
+      "numbers": {
+        "type": "list",
+        "of": {
+          "type": "number",
+          "required": true,
+          "default": 0
+        },
+        "length": 5
+      }
+    }
+  },
+  {
+    "name": "ExampleEnumParent",
+    "type": "enum",
+    "values": [
+      "Normal"
+    ]
+  },
+  {
+    "name": "UserKind",
+    "type": "enum",
+    "extends": "ExampleEnumParent",
+    "values": [
+      "Administrator"
+    ]
+  },
+  {
+    "name": "ContactInfo",
+    "type": "object",
+    "extends": "Person",
+    "properties": {
+      "email": {
+        "type": "string",
+        "validate": {
+          "email": true
+        }
+      },
+      "test": {
+        "type": "list",
+        "of": "UserKind"
+      },
+      "addresses": {
+        "type": "list",
+        "of": {
+          "type": "string"
+        }
+      }
+    }
+  }
+]

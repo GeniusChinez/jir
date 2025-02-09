@@ -10,6 +10,7 @@
     "build:esm": "npx tsc --project tsconfig.esm.json",
     "build:cjs": "npx tsc --module CommonJS --outDir dist/cjs --project tsconfig.cjs.json",
     "build": "run-s \"build:*\"",
+    "dev": "pnpm generate-build && node dist/cjs/index.js",
     "test": "jest",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint 'src/**/*.{js,ts}'",
     "lint_tsc": "npm run lint && tsc --noemit",
@@ -43,6 +44,7 @@
     "prettier": "^3.4.2",
     "rollup-plugin-dts": "^6.1.1",
     "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
     "tsd": "^0.31.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0"
@@ -53,5 +55,8 @@
       "eslint --fix",
       "git add"
     ]
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
   }
 }
