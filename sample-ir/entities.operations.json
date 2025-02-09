@@ -1,0 +1,15 @@
+[
+  {
+    "name": "User",
+    "type": "entity",
+    "properties": {
+      "name": {
+        "type": "string"
+      }
+    },
+    "operations": [
+      "publish",
+      "reject"
+    ]
+  }
+]

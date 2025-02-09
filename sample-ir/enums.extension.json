@@ -1,0 +1,27 @@
+[
+  {
+    "name": "User",
+    "type": "entity",
+    "properties": {
+      "kind": {
+        "type": "UserKind"
+      }
+    }
+  },
+  {
+    "name": "UserKind",
+    "type": "enum",
+    "extends": "BasicUserTypes",
+    "values": [
+      "Guest"
+    ]
+  },
+  {
+    "name": "BasicUserTypes",
+    "type": "enum",
+    "values": [
+      "Admin",
+      "Normal"
+    ]
+  }
+]
