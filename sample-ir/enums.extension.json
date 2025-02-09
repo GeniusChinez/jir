@@ -3,9 +3,7 @@
     "name": "User",
     "type": "entity",
     "properties": {
-      "kind": {
-        "type": "UserKind"
-      }
+      "kind": "UserKind"
     }
   },
   {

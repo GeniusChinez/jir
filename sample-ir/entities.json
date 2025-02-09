@@ -9,9 +9,8 @@
       "age": {
         "type": "number"
       },
-      "isOld": {
-        "type": "boolean"
-      }
+      "age2": "number",
+      "isOld": "boolean"
     }
   }
 ]

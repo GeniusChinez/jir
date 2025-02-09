@@ -14,5 +14,4 @@ export function resolve(context: ValidationContext) {
 // @todo: handle more attributes for integer and text field types (eg, long? varchar?)
 // @todo: ensure some enums can be "abstract" in the same way some entities and objects are
 // @todo: add a way to append new operations to old ones during operations-spec (right now it replaces)
-// @todo: permit simple string literal types for properties
 // @todo: add support for datetime data types

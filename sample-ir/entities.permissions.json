@@ -3,9 +3,7 @@
     "name": "User",
     "type": "entity",
     "properties": {
-      "name": {
-        "type": "string"
-      }
+      "name": "string"
     },
     "operations": [
       "publish",

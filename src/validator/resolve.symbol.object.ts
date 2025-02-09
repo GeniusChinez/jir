@@ -3,6 +3,7 @@ import { isAlnum, isAlpha } from "./chars";
 import { ValidationContext } from "./context";
 import { resolveName } from "./resolve.name";
 import { resolveSymbol } from "./resolve.symbol";
+import { parseTypeFromSource } from "./source-types";
 import { ObjectSymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
 
 export function resolveObjectSymbol(
@@ -52,30 +53,23 @@ export function resolveObjectSymbol(
     const propertyAsSymbol: Symbol = {
       name: displayName,
       referenceCount: 0,
-      raw: property,
+      raw:
+        typeof property !== "string"
+          ? property
+          : {
+              type: property,
+            },
       status: SymbolStatus.Unresolved,
       type: (() => {
-        switch (property.type) {
-          case "entity": {
-            throw new Error(
-              `type '${property.type}' not allowed for '${displayName}'`,
-            );
-          }
-          case "enum":
-            return SymbolKind.Enum;
-          case "object":
-            return SymbolKind.Object;
-          case "string":
-            return SymbolKind.Text;
-          case "number":
-            return SymbolKind.Number;
-          case "boolean":
-            return SymbolKind.Boolean;
-          case "list":
-            return SymbolKind.List;
-          default:
-            return property.type;
+        const type = parseTypeFromSource(property);
+
+        if (type === SymbolKind.Entity) {
+          throw new Error(
+            `type '${property.type}' not allowed for '${displayName}'`,
+          );
         }
+
+        return type as SymbolKind;
       })(),
     };
 
