@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { isValidColumnName } from "./chars";
 import { ValidationContext } from "./context";
 import { resolveName } from "./resolve.name";
 import { FKOnChange, NumberSymbol, Symbol, SymbolKind } from "./symbols";
+import { checkConflicts, extractBooleanFields } from "./utils";
 
 export function resolveNumberSymbol(
   _symbol: Symbol,
@@ -8,9 +11,95 @@ export function resolveNumberSymbol(
 ) {
   const symbol: NumberSymbol = {
     ..._symbol,
+    visibility:
+      "private" in _symbol.raw && !!_symbol.raw.private ? "private" : "public",
   };
 
+  extractBooleanFields(symbol, _symbol.raw, [
+    "autoincrement",
+    "unique",
+    "even",
+    "odd",
+    "positive",
+    "negative",
+    "nonnegative",
+    "nonpositive",
+    "nonzero",
+    "abs",
+  ]);
+
+  checkConflicts(symbol, [
+    ["even", "odd"],
+    ["negative", "positive"],
+    ["negative", "nonnegative"],
+    ["positive", "nonpositive"],
+    ["nonnegative", "nonpositive"],
+    ["negative", "abs"],
+  ]);
+
   const { raw } = _symbol;
+
+  if ("variant" in raw) {
+    if (typeof raw.variant !== "string") {
+      throw new Error(`Unknown variant '${raw.variant}' for '${symbol.name}'`);
+    }
+
+    if (!["int", "float", "decimal", "bigint"].includes(raw.variant)) {
+      throw new Error(`Unknown variant '${raw.variant}' for '${symbol.name}'`);
+    }
+
+    symbol.variant = raw.variant as typeof symbol.variant;
+  }
+
+  if ("map" in raw) {
+    if (typeof raw.map !== "string" || !isValidColumnName(raw.map)) {
+      throw new Error(
+        `Invalid database column/field name '${raw.map}' while mapping for '${symbol.name}'`,
+      );
+    }
+    symbol.map = raw.map;
+  }
+
+  const reapNumberValue = (name: string, rename?: string) => {
+    if (name in raw) {
+      const value = (raw as any)[name];
+      if (symbol.variant === "bigint") {
+        if (!["bigint", "number"].includes(typeof value)) {
+          throw new Error(
+            `Expected a numeric ${name} value for '${symbol.name}'`,
+          );
+        }
+        (symbol as any)[rename || name] = BigInt(value as any);
+      } else {
+        if (typeof value !== "number") {
+          throw new Error(
+            `Expected a numeric ${name} value for '${symbol.name}'`,
+          );
+        }
+        (symbol as any)[rename || name] = value;
+      }
+    }
+  };
+
+  reapNumberValue("max");
+  reapNumberValue("min");
+  reapNumberValue("default", "defaultValue");
+  reapNumberValue("gt");
+  reapNumberValue("gte");
+  reapNumberValue("lt");
+  reapNumberValue("lte");
+  reapNumberValue("eq");
+  reapNumberValue("neq");
+  reapNumberValue("mod");
+  reapNumberValue("plus");
+  reapNumberValue("minus");
+  reapNumberValue("divides");
+  reapNumberValue("divisor");
+
+  if (symbol.even || symbol.odd) {
+    // @note: are we sure about this?
+    symbol.variant = "int";
+  }
 
   if ("references" in raw) {
     if (context.target !== "mysql") {

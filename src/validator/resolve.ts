@@ -15,3 +15,9 @@ export function resolve(context: ValidationContext) {
 // @todo: ensure some enums can be "abstract" in the same way some entities and objects are
 // @todo: add a way to append new operations to old ones during operations-spec (right now it replaces)
 // @todo: add support for datetime data types
+// @todo: add support for attributes in simple field types. Eg fieldx: "string @maxlen(255) @unique @updatedAt @datetime @references()"
+// @todo: permit descriptions in fields
+// @todo: permit descriptions in inline field types. Eg { "name": "string - The name of the user" }
+// @todo: permit strict mode, which throws errors if it meets unknown fields
+// @todo: add underlying db-type specification in field types
+// @todo: permit @decimal to optionally be like: @decimal(10,2)

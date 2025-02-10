@@ -6,6 +6,7 @@ import {
   EntityPermissionsSchema,
   globalEntityOperations,
 } from "./entity";
+import { parseFieldTypeFromString } from "./parse.field-type.from-string";
 import { resolveName } from "./resolve.name";
 import { resolveSymbol } from "./resolve.symbol";
 import { parseTypeFromSource } from "./source-types";
@@ -179,18 +180,18 @@ export function resolveEntitySymbol(
 
     const displayName = `${symbol.name}.${propertyName}`;
 
+    const expandedPropoerty =
+      typeof property !== "string"
+        ? property
+        : parseFieldTypeFromString(displayName, property);
+
     const propertyAsSymbol: Symbol = {
       name: displayName,
       referenceCount: 0,
-      raw:
-        typeof property !== "string"
-          ? property
-          : {
-              type: property,
-            },
+      raw: expandedPropoerty,
       status: SymbolStatus.Unresolved,
       type: (() => {
-        const type = parseTypeFromSource(property);
+        const type = parseTypeFromSource(expandedPropoerty);
 
         if (type === SymbolKind.Entity) {
           throw new Error(

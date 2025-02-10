@@ -1,91 +1,111 @@
 // Character classification functions similar to C's isalpha, isdigit, etc.
 
 /**
- * Checks if a character is a letter (A-Z or a-z)
+ * Checks if a string is entirely letters (A-Z or a-z)
  */
-export function isAlpha(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+export function isAlpha(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+  });
 }
 
 /**
- * Checks if a character is a digit (0-9)
+ * Checks if a string is entirely digits (0-9)
  */
-export function isDigit(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return code >= 48 && code <= 57;
+export function isDigit(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return code >= 48 && code <= 57;
+  });
 }
 
 /**
- * Checks if a character is alphanumeric (A-Z, a-z, 0-9)
+ * Checks if a string is entirely alphanumeric (A-Z, a-z, 0-9)
  */
-export function isAlnum(char: string): boolean {
-  return isAlpha(char) || isDigit(char);
+export function isAlnum(_char: string): boolean {
+  return _char.split("").every((char) => isAlpha(char) || isDigit(char));
 }
 
 /**
- * Checks if a character is a whitespace character (space, tab, newline, etc.)
+ * Checks if a string is entirely whitespace characters (space, tab, newline, etc.)
  */
-export function isSpace(char: string): boolean {
-  return /\s/.test(char);
+export function isSpace(_char: string): boolean {
+  return _char.split("").every((char) => /\s/.test(char));
 }
 
 /**
- * Checks if a character is an uppercase letter (A-Z)
+ * Checks if a string is entirely uppercase letters (A-Z)
  */
-export function isUpper(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return code >= 65 && code <= 90;
+export function isUpper(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return code >= 65 && code <= 90;
+  });
 }
 
 /**
- * Checks if a character is a lowercase letter (a-z)
+ * Checks if a string is entirely lowercase letters (a-z)
  */
-export function isLower(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return code >= 97 && code <= 122;
+export function isLower(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return code >= 97 && code <= 122;
+  });
 }
 
 /**
- * Checks if a character is a punctuation symbol (!, ?, ., etc.)
+ * Checks if a string is entirely punctuation symbols (!, ?, ., etc.)
  */
-export function isPunct(char: string): boolean {
-  return /[!@#$%^&*()\-_=+[{\]}\\|;:'",<.>/?]/.test(char);
+export function isPunct(_char: string): boolean {
+  return _char
+    .split("")
+    .every((char) => /[!@#$%^&*()\-_=+[{\]}\\|;:'",<.>/?]/.test(char));
 }
 
 /**
- * Checks if a character is a hexadecimal digit (0-9, A-F, a-f)
+ * Checks if a string is entirely hexadecimal digits (0-9, A-F, a-f)
  */
-export function isHexDigit(char: string): boolean {
-  return /^[0-9A-Fa-f]$/.test(char);
+export function isHexDigit(_char: string): boolean {
+  return _char.split("").every((char) => /^[0-9A-Fa-f]$/.test(char));
 }
 
 /**
- * Checks if a character is a control character (ASCII 0-31 and 127)
+ * Checks if a string is entirely control characters (ASCII 0-31 and 127)
  */
-export function isControl(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return (code >= 0 && code <= 31) || code === 127;
+export function isControl(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return (code >= 0 && code <= 31) || code === 127;
+  });
 }
 
 /**
- * Checks if a character is a printable ASCII character (excluding control chars)
+ * Checks if a string is entirely printable ASCII characters (excluding control chars)
  */
-export function isPrint(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return code >= 32 && code < 127;
+export function isPrint(_char: string): boolean {
+  return _char.split("").every((char) => {
+    const code = char.charCodeAt(0);
+    return code >= 32 && code < 127;
+  });
 }
 
 /**
- * Checks if a character is a graphical character (printable, but not space)
+ * Checks if a string is entirely graphical characters (printable, but not space)
  */
-export function isGraph(char: string): boolean {
-  return isPrint(char) && !isSpace(char);
+export function isGraph(_char: string): boolean {
+  return _char.split("").every((char) => isPrint(char) && !isSpace(char));
 }
 
 /**
- * Checks if a character is a blank space (space or tab)
+ * Checks if a string is entirely blank spaces (space or tab)
  */
-export function isBlank(char: string): boolean {
-  return char === " " || char === "\t";
+export function isBlank(_char: string): boolean {
+  return _char.split("").every((char) => char === " " || char === "\t");
+}
+/**
+ * Checks if a string is a valid database column/field name
+ */
+export function isValidColumnName(name: string) {
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }

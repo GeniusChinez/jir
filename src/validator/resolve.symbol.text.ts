@@ -1,13 +1,130 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { isValidColumnName } from "./chars";
 import { ValidationContext } from "./context";
 import { resolveName } from "./resolve.name";
 import { FKOnChange, Symbol, SymbolKind, TextSymbol } from "./symbols";
+import { checkConflicts, extractBooleanFields } from "./utils";
 
 export function resolveTextSymbol(_symbol: Symbol, context: ValidationContext) {
   const symbol: TextSymbol = {
     ..._symbol,
+    visibility:
+      "private" in _symbol.raw && !!_symbol.raw.private ? "private" : "public",
   };
 
+  extractBooleanFields(symbol, _symbol.raw, [
+    "unique",
+    "long",
+    "medium",
+    "short",
+    "lowercase",
+    "uppercase",
+    "kebabcase",
+    "screamingcase",
+    "camelcase",
+    "pascalcase",
+    "nospaces",
+    "nonempty",
+    "nospecial",
+    "alphanumeric",
+    "alphabetic",
+    "numeric",
+    "url",
+    "email",
+    "ipaddress",
+    "uuid",
+    "cuid",
+    "ulid",
+    "cidr",
+    "objectId",
+    "secret",
+    "slug",
+    "base64",
+    "trim",
+    "time",
+    "datetime",
+    "date",
+    "password",
+  ]);
+
+  checkConflicts(symbol, [
+    // Casing styles (only one should be true)
+    [
+      "lowercase",
+      "uppercase",
+      "camelcase",
+      "pascalcase",
+      "kebabcase",
+      "screamingcase",
+    ],
+
+    // Length constraints (only one should be true)
+    ["long", "medium", "short"],
+
+    // Space-related rules (nospaces may conflict with slug or other formats)
+    ["nospaces", "slug"],
+
+    // Character type constraints (only one should be true)
+    ["alphabetic", "numeric", "alphanumeric"],
+
+    // Special formats (only one should be true)
+    [
+      "url",
+      "email",
+      "ipaddress",
+      "uuid",
+      "cuid",
+      "ulid",
+      "cidr",
+      "objectId",
+      "date",
+      "datetime",
+      "time",
+      "base64",
+    ],
+  ]);
+
   const { raw } = _symbol;
+
+  if ("map" in raw) {
+    if (typeof raw.map !== "string" || !isValidColumnName(raw.map)) {
+      throw new Error(
+        `Invalid database column/field name '${raw.map}' while mapping for '${symbol.name}'`,
+      );
+    }
+    symbol.map = raw.map;
+  }
+
+  const reapNumberValue = (name: string, rename?: string) => {
+    if (name in raw) {
+      const value = (raw as any)[name];
+      if (typeof value !== "number") {
+        throw new Error(
+          `Expected a numeric ${name} value for '${symbol.name}'`,
+        );
+      }
+      (symbol as any)[rename || name] = value;
+    }
+  };
+
+  reapNumberValue("max");
+  reapNumberValue("min");
+  reapNumberValue("default", "defaultValue");
+  reapNumberValue("eq");
+  reapNumberValue("neq");
+
+  const reapStringValue = (name: string, rename?: string) => {
+    if (name in raw) {
+      const value = (raw as any)[name];
+      if (typeof value !== "string") {
+        throw new Error(`Expected a string ${name} value for '${symbol.name}'`);
+      }
+      (symbol as any)[rename || name] = value;
+    }
+  };
+
+  reapStringValue("hash");
+  reapStringValue("encrypt");
 
   if ("references" in raw) {
     if (context.target !== "mongodb") {

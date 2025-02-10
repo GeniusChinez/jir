@@ -32,7 +32,32 @@ export interface NumberSymbol extends Symbol {
     onDelete: FKOnChange;
     onUpdate: FKOnChange;
   };
-  variant?: "decimal" | "bigint" | "int";
+  variant?: "decimal" | "bigint" | "int" | "float";
+  unique?: boolean;
+  autoincrement?: boolean;
+  defaultValue?: bigint | number;
+  max?: bigint | number;
+  min?: bigint | number;
+  map?: string;
+  even?: boolean;
+  odd?: boolean;
+  visibility: "private" | "public";
+  positive?: boolean;
+  negative?: boolean;
+  nonzero?: boolean;
+  nonnegative?: boolean;
+  nonpositive?: boolean;
+  abs?: boolean;
+  gt?: bigint | number;
+  gte?: bigint | number;
+  lt?: bigint | number;
+  lte?: bigint | number;
+  eq?: bigint | number;
+  neq?: bigint | number;
+  plus?: bigint | number;
+  minus?: bigint | number;
+  divides?: bigint | number;
+  divisors?: bigint | number;
 }
 
 export interface EnumSymbol extends Symbol {
@@ -53,14 +78,48 @@ export interface ObjectSymbol extends Symbol {
 }
 
 export interface TextSymbol extends Symbol {
-  maxLength?: number;
-  isLongText?: boolean;
   references?: {
     name: string;
     field: string;
     onDelete: FKOnChange;
     onUpdate: FKOnChange;
   };
+  map?: string;
+  visibility: "private" | "public";
+  unique?: boolean;
+  long?: boolean;
+  medium?: boolean;
+  short?: boolean;
+  lowercase?: boolean;
+  uppercase?: boolean;
+  kebabcase?: boolean;
+  screamingcase?: boolean;
+  camelcase?: boolean;
+  pascalcase?: boolean;
+  nospaces?: boolean;
+  nonempty?: boolean;
+  nospecial?: boolean;
+  alphanumeric?: boolean;
+  alphabetic?: boolean;
+  numeric?: boolean;
+  url?: boolean;
+  email?: boolean;
+  ipaddress?: boolean;
+  uuid?: boolean;
+  cuid?: boolean;
+  ulid?: boolean;
+  cidr?: boolean;
+  objectId?: boolean;
+  secret?: boolean; // means it will be encrypted
+  slug?: boolean;
+  base64?: boolean;
+  trim?: boolean;
+  time?: boolean;
+  datetime?: boolean;
+  date?: boolean;
+  encrypt?: string;
+  hash?: string;
+  password?: boolean;
 }
 
 export interface ListSymbol extends Symbol {

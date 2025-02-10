@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isAlnum, isAlpha } from "./chars";
 import { ValidationContext } from "./context";
+import { parseFieldTypeFromString } from "./parse.field-type.from-string";
 import { resolveName } from "./resolve.name";
 import { resolveSymbol } from "./resolve.symbol";
 import { parseTypeFromSource } from "./source-types";
@@ -50,18 +51,18 @@ export function resolveObjectSymbol(
 
     const displayName = `${symbol.name}.${propertyName}`;
 
+    const expandedPropoerty =
+      typeof property !== "string"
+        ? property
+        : parseFieldTypeFromString(displayName, property);
+
     const propertyAsSymbol: Symbol = {
       name: displayName,
       referenceCount: 0,
-      raw:
-        typeof property !== "string"
-          ? property
-          : {
-              type: property,
-            },
+      raw: expandedPropoerty,
       status: SymbolStatus.Unresolved,
       type: (() => {
-        const type = parseTypeFromSource(property);
+        const type = parseTypeFromSource(expandedPropoerty);
 
         if (type === SymbolKind.Entity) {
           throw new Error(
