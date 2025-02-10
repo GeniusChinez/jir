@@ -90,6 +90,7 @@ export interface ObjectSymbol extends Symbol {
       name: string;
       type: SymbolKind;
       status: SymbolStatus;
+      optional?: boolean;
     };
   };
   abstract?: boolean; // is purely inherited from...never instantiated concretely
@@ -152,6 +153,7 @@ export interface EntitySymbol extends Symbol {
       name: string;
       type: SymbolKind;
       status: SymbolStatus;
+      optional?: boolean;
     };
   };
   visibility: "public" | "private" | "admin" | "system"; // public -> anyone, private -> logged-in, admin -> only admins, system -> only the system

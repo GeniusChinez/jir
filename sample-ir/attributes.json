@@ -56,7 +56,7 @@
       "pascalcase": "string @pascalcase",
       "userId": "string @id",
       "dates": "date",
-      "dates2": "date @default(1999-08-29) @createdAt"
+      "dates2": "date @default(1999-08-29) @createdAt @optional"
     }
   }
 ]

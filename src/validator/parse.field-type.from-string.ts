@@ -40,6 +40,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
         "@nonzero",
         "@abs",
         "@autoincrement",
+        "@optional",
       ];
 
       for (const attribute of attributes) {
@@ -129,6 +130,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
         "@date",
         "@secret",
         "@password",
+        "@optional",
       ];
 
       for (const attribute of attributes) {
@@ -162,7 +164,13 @@ export function parseFieldTypeFromString(field: string, type: string) {
       break;
     }
     case "date": {
-      const booleanFlags = ["@future", "@past", "@updatedAt", "@createdAt"];
+      const booleanFlags = [
+        "@future",
+        "@past",
+        "@updatedAt",
+        "@createdAt",
+        "@optional",
+      ];
 
       for (const attribute of attributes) {
         if (booleanFlags.includes(attribute)) {
@@ -195,7 +203,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
       break;
     }
     case "boolean": {
-      const booleanFlags: string[] = [];
+      const booleanFlags: string[] = ["@optional"];
       for (const attribute of attributes) {
         if (attribute in booleanFlags) {
           result[attribute.slice(1)] = true;

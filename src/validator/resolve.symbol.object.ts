@@ -51,12 +51,12 @@ export function resolveObjectSymbol(
 
     const displayName = `${symbol.name}.${propertyName}`;
 
-    const expandedPropoerty =
+    const expandedProperty =
       typeof property !== "string"
         ? property
         : parseFieldTypeFromString(displayName, property);
 
-    const type = parseTypeFromSource(expandedPropoerty) as SymbolKind;
+    const type = parseTypeFromSource(expandedProperty) as SymbolKind;
     if (type === SymbolKind.Entity) {
       throw new Error(
         `type '${property.type}' not allowed for '${displayName}'`,
@@ -66,13 +66,16 @@ export function resolveObjectSymbol(
     const propertyAsSymbol: Symbol = {
       name: displayName,
       referenceCount: 0,
-      raw: expandedPropoerty,
+      raw: expandedProperty,
       status: SymbolStatus.Unresolved,
       type,
     };
 
     const resolved = resolveSymbol(propertyAsSymbol, context);
-    symbol.properties[propertyName] = resolved;
+    symbol.properties[propertyName] = {
+      ...resolved,
+      optional: "optional" in expandedProperty && !!expandedProperty.optional,
+    };
 
     if ("abstract" in resolved && !!resolved.abstract) {
       throw new Error(
