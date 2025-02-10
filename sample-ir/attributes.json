@@ -53,7 +53,8 @@
       "kebabcase": "string @kebabcase",
       "screamingcase": "string @screamingcase",
       "camelcase": "string @camelcase",
-      "pascalcase": "string @pascalcase"
+      "pascalcase": "string @pascalcase",
+      "userId": "string @id"
     }
   }
 ]

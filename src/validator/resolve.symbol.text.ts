@@ -45,6 +45,7 @@ export function resolveTextSymbol(_symbol: Symbol, context: ValidationContext) {
     "datetime",
     "date",
     "password",
+    "id",
   ]);
 
   checkConflicts(symbol, [
@@ -83,6 +84,12 @@ export function resolveTextSymbol(_symbol: Symbol, context: ValidationContext) {
       "base64",
     ],
   ]);
+
+  if (context.target !== "mongodb" && symbol.id) {
+    throw new Error(
+      `${context.target} cannot have string record IDs ('${symbol.name}')`,
+    );
+  }
 
   const { raw } = _symbol;
 

@@ -26,6 +26,7 @@ export function resolveNumberSymbol(
     "nonpositive",
     "nonzero",
     "abs",
+    "id",
   ]);
 
   checkConflicts(symbol, [
@@ -36,6 +37,12 @@ export function resolveNumberSymbol(
     ["nonnegative", "nonpositive"],
     ["negative", "abs"],
   ]);
+
+  if (context.target === "mongodb" && symbol.id) {
+    throw new Error(
+      `${context.target} cannot have numeric record IDs ('${symbol.name}')`,
+    );
+  }
 
   const { raw } = _symbol;
 

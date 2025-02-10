@@ -58,6 +58,7 @@ export interface NumberSymbol extends Symbol {
   minus?: bigint | number;
   divides?: bigint | number;
   divisors?: bigint | number;
+  id?: boolean;
 }
 
 export interface EnumSymbol extends Symbol {
@@ -120,6 +121,7 @@ export interface TextSymbol extends Symbol {
   encrypt?: string;
   hash?: string;
   password?: boolean;
+  id?: boolean;
 }
 
 export interface ListSymbol extends Symbol {

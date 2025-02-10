@@ -27,6 +27,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
   switch (baseType) {
     case "number": {
       const booleanFlags = [
+        "@id",
         "@unique",
         "@public",
         "@private",
@@ -93,6 +94,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
     }
     case "string": {
       const booleanFlags = [
+        "@id",
         "@long",
         "@medium",
         "@short",
