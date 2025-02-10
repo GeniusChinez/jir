@@ -64,6 +64,7 @@ export interface NumberSymbol extends Symbol {
 export interface EnumSymbol extends Symbol {
   values: string[];
   final?: boolean;
+  abstract?: boolean;
 }
 
 export interface ObjectSymbol extends Symbol {

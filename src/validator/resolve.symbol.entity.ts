@@ -185,22 +185,19 @@ export function resolveEntitySymbol(
         ? property
         : parseFieldTypeFromString(displayName, property);
 
+    const type = parseTypeFromSource(expandedPropoerty) as SymbolKind;
+    if (type === SymbolKind.Entity) {
+      throw new Error(
+        `type '${property.type}' not allowed for '${displayName}'`,
+      );
+    }
+
     const propertyAsSymbol: Symbol = {
       name: displayName,
       referenceCount: 0,
       raw: expandedPropoerty,
       status: SymbolStatus.Unresolved,
-      type: (() => {
-        const type = parseTypeFromSource(expandedPropoerty);
-
-        if (type === SymbolKind.Entity) {
-          throw new Error(
-            `type '${property.type}' not allowed for '${displayName}'`,
-          );
-        }
-
-        return type as SymbolKind;
-      })(),
+      type,
     };
 
     const resolved = resolveSymbol(propertyAsSymbol, context);
@@ -208,7 +205,7 @@ export function resolveEntitySymbol(
 
     if ("abstract" in resolved && !!resolved.abstract) {
       throw new Error(
-        `Abstract type '${property.type}' not allowed for '${displayName}'`,
+        `Abstract type '${type}' not allowed for '${displayName}'`,
       );
     }
   });

@@ -12,10 +12,8 @@ export function resolve(context: ValidationContext) {
 // @todo: Do not permit object list property types that have base types that "reference" other models
 // @todo: Deal with list base types that reference other models
 // @todo: handle more attributes for integer and text field types (eg, long? varchar?)
-// @todo: ensure some enums can be "abstract" in the same way some entities and objects are
 // @todo: add a way to append new operations to old ones during operations-spec (right now it replaces)
 // @todo: add support for datetime data types
-// @todo: add support for attributes in simple field types. Eg fieldx: "string @maxlen(255) @unique @updatedAt @datetime @references()"
 // @todo: permit descriptions in fields
 // @todo: permit descriptions in inline field types. Eg { "name": "string - The name of the user" }
 // @todo: permit strict mode, which throws errors if it meets unknown fields
