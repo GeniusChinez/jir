@@ -12,6 +12,8 @@ function reap(guy: string) {
       return SymbolKind.Text;
     case "number":
       return SymbolKind.Number;
+    case "date":
+      return SymbolKind.DateTime;
     case "boolean":
       return SymbolKind.Boolean;
     case "list":

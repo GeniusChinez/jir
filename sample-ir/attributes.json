@@ -54,7 +54,9 @@
       "screamingcase": "string @screamingcase",
       "camelcase": "string @camelcase",
       "pascalcase": "string @pascalcase",
-      "userId": "string @id"
+      "userId": "string @id",
+      "dates": "date",
+      "dates2": "date @default(1999-08-29) @createdAt"
     }
   }
 ]

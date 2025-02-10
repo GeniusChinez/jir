@@ -12,6 +12,7 @@ export enum SymbolKind {
   Text = "Text",
   Number = "Number",
   Boolean = "Boolean",
+  DateTime = "DateTime",
   List = "List",
 }
 
@@ -59,6 +60,22 @@ export interface NumberSymbol extends Symbol {
   divides?: bigint | number;
   divisors?: bigint | number;
   id?: boolean;
+}
+
+export interface DateTimeSymbol extends Symbol {
+  defaultValue?: Date;
+  map?: string;
+  gt?: Date;
+  gte?: Date;
+  lt?: Date;
+  lte?: Date;
+  eq?: Date;
+  neq?: Date;
+  past?: boolean;
+  future?: boolean;
+  updatedAt?: boolean;
+  createdAt?: boolean;
+  visibility: "private" | "public";
 }
 
 export interface EnumSymbol extends Symbol {

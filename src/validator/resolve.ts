@@ -19,3 +19,5 @@ export function resolve(context: ValidationContext) {
 // @todo: permit strict mode, which throws errors if it meets unknown fields
 // @todo: add underlying db-type specification in field types
 // @todo: permit @decimal to optionally be like: @decimal(10,2)
+
+// @todo: add support for optional fields

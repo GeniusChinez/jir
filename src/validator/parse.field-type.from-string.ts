@@ -161,6 +161,39 @@ export function parseFieldTypeFromString(field: string, type: string) {
       }
       break;
     }
+    case "date": {
+      const booleanFlags = ["@future", "@past", "@updatedAt", "@createdAt"];
+
+      for (const attribute of attributes) {
+        if (booleanFlags.includes(attribute)) {
+          result[attribute.slice(1)] = true;
+          continue;
+        }
+
+        let found = false;
+        for (const [prefix, { key, type }] of Object.entries(
+          dateAttributeParsers,
+        )) {
+          if (attribute.startsWith(prefix)) {
+            result[key] = (() => {
+              if (type === "number") {
+                return parseNumericAttributeValue(attribute, field, prefix);
+              }
+              return parseStringAttributeValue(attribute, field, prefix);
+            })();
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          throw new Error(
+            `'${field}' has an impermissible attribute '${attribute}'`,
+          );
+        }
+      }
+      break;
+    }
     case "boolean": {
       const booleanFlags: string[] = [];
       for (const attribute of attributes) {
@@ -239,6 +272,47 @@ export const stringAttributeParsers: Record<
   },
   "@encrypt(": {
     key: "hash",
+    type: "string",
+  },
+};
+
+export const dateAttributeParsers: Record<
+  string,
+  {
+    key: string;
+    type: "number" | "string";
+  }
+> = {
+  "@default(": {
+    key: "default",
+    type: "string",
+  },
+  "@map(": {
+    key: "map",
+    type: "string",
+  },
+  "@lt(": {
+    key: "lt",
+    type: "string",
+  },
+  "@lte(": {
+    key: "lte",
+    type: "string",
+  },
+  "@gt(": {
+    key: "gt",
+    type: "string",
+  },
+  "@gte(": {
+    key: "gte",
+    type: "string",
+  },
+  "@eq(": {
+    key: "eq",
+    type: "string",
+  },
+  "@neq(": {
+    key: "neq",
     type: "string",
   },
 };

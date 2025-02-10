@@ -1,5 +1,6 @@
 import { ValidationContext } from "./context";
 import { resolveName } from "./resolve.name";
+import { resolveDateTimeSymbol } from "./resolve.symbol.date";
 import { resolveEntitySymbol } from "./resolve.symbol.entity";
 import { resolveEnumSymbol } from "./resolve.symbol.enum";
 import { resolveListSymbol } from "./resolve.symbol.list";
@@ -19,6 +20,8 @@ export function actuallyResolveSymbol(
       break;
     case SymbolKind.Number:
       return resolveNumberSymbol(symbol, context);
+    case SymbolKind.DateTime:
+      return resolveDateTimeSymbol(symbol, context);
     case SymbolKind.List: {
       if (context.target !== "mongodb") {
         throw new Error(
