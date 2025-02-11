@@ -7,7 +7,14 @@
     },
     "operations": [
       "publish",
-      "reject"
+      "reject",
+      "reject2"
+    ],
+    "+operations": [
+      "raise"
+    ],
+    "-operations": [
+      "reject2"
     ]
   }
 ]

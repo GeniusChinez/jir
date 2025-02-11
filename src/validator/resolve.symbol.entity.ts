@@ -123,6 +123,28 @@ export function resolveEntitySymbol(
     symbol.operations = operations;
   }
 
+  if ("+operations" in raw) {
+    const { data: operations, success } = EntityOperationsSchema.safeParse(
+      raw["+operations"],
+    );
+    if (!success) {
+      throw new Error(`Invalid operations spec '${symbol.name}.operations'`);
+    }
+    symbol.operations = [...new Set([...symbol.operations, ...operations])];
+  }
+
+  if ("-operations" in raw) {
+    const { data: operations, success } = EntityOperationsSchema.safeParse(
+      raw["-operations"],
+    );
+    if (!success) {
+      throw new Error(`Invalid operations spec '${symbol.name}.operations'`);
+    }
+    symbol.operations = symbol.operations.filter(
+      (one) => !operations.includes(one),
+    );
+  }
+
   if ("permissions" in raw) {
     const {
       data: permissions,
