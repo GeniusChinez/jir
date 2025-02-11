@@ -1,3 +1,7 @@
+import { DateOptions } from "./dates.options";
+import { NumberOptions } from "./numbers.options";
+import { TextOptions } from "./text.options";
+
 export enum SymbolStatus {
   Unresolved = "Unresolved",
   Resolving = "Resolving",
@@ -22,11 +26,13 @@ export interface Symbol {
   referenceCount: number;
   type: SymbolKind;
   raw: object;
+  map?: string;
+  visibility?: "public" | "private" | "admin" | "system" | "inherit"; // being optional means inherit
 }
 
 export type FKOnChange = "NoAction" | "Cascade" | "Restrict" | "SetNull";
 
-export interface NumberSymbol extends Symbol {
+export interface NumberSymbol extends Symbol, NumberOptions {
   references?: {
     name: string;
     field: string;
@@ -37,45 +43,10 @@ export interface NumberSymbol extends Symbol {
   unique?: boolean;
   autoincrement?: boolean;
   defaultValue?: bigint | number;
-  max?: bigint | number;
-  min?: bigint | number;
-  map?: string;
-  even?: boolean;
-  odd?: boolean;
-  visibility: "private" | "public";
-  positive?: boolean;
-  negative?: boolean;
-  nonzero?: boolean;
-  nonnegative?: boolean;
-  nonpositive?: boolean;
-  abs?: boolean;
-  gt?: bigint | number;
-  gte?: bigint | number;
-  lt?: bigint | number;
-  lte?: bigint | number;
-  eq?: bigint | number;
-  neq?: bigint | number;
-  plus?: bigint | number;
-  minus?: bigint | number;
-  divides?: bigint | number;
-  divisors?: bigint | number;
-  id?: boolean;
 }
 
-export interface DateTimeSymbol extends Symbol {
+export interface DateTimeSymbol extends Symbol, DateOptions {
   defaultValue?: Date;
-  map?: string;
-  gt?: Date;
-  gte?: Date;
-  lt?: Date;
-  lte?: Date;
-  eq?: Date;
-  neq?: Date;
-  past?: boolean;
-  future?: boolean;
-  updatedAt?: boolean;
-  createdAt?: boolean;
-  visibility: "private" | "public";
 }
 
 export interface EnumSymbol extends Symbol {
@@ -97,54 +68,26 @@ export interface ObjectSymbol extends Symbol {
   final?: boolean; // cannot be inherited from
 }
 
-export interface TextSymbol extends Symbol {
+export interface TextSymbol extends Symbol, TextOptions {
   references?: {
     name: string;
     field: string;
     onDelete: FKOnChange;
     onUpdate: FKOnChange;
   };
-  map?: string;
-  visibility: "private" | "public";
   unique?: boolean;
   long?: boolean;
   medium?: boolean;
   short?: boolean;
-  lowercase?: boolean;
-  uppercase?: boolean;
-  kebabcase?: boolean;
-  screamingcase?: boolean;
-  camelcase?: boolean;
-  pascalcase?: boolean;
-  nospaces?: boolean;
-  nonempty?: boolean;
-  nospecial?: boolean;
-  alphanumeric?: boolean;
-  alphabetic?: boolean;
-  numeric?: boolean;
-  url?: boolean;
-  email?: boolean;
-  ipaddress?: boolean;
-  uuid?: boolean;
-  cuid?: boolean;
-  ulid?: boolean;
-  cidr?: boolean;
-  objectId?: boolean;
-  secret?: boolean; // means it will be encrypted
-  slug?: boolean;
-  base64?: boolean;
-  trim?: boolean;
-  time?: boolean;
-  datetime?: boolean;
-  date?: boolean;
-  encrypt?: string;
-  hash?: string;
-  password?: boolean;
-  id?: boolean;
 }
 
 export interface ListSymbol extends Symbol {
   of: Symbol;
+  nonempty?: boolean;
+  some?:
+    | NumberOptions<{ kind: SymbolKind.Number }>
+    | TextOptions<{ kind: SymbolKind.Text }>
+    | DateOptions<{ kind: SymbolKind.DateTime }>;
 }
 
 export interface EntitySymbol extends Symbol {
@@ -156,7 +99,6 @@ export interface EntitySymbol extends Symbol {
       optional?: boolean;
     };
   };
-  visibility: "public" | "private" | "admin" | "system"; // public -> anyone, private -> logged-in, admin -> only admins, system -> only the system
   abstract?: boolean; // is purely inherited from...never instantiated concretely
   final?: boolean; // cannot be inherited from
   operations: string[];

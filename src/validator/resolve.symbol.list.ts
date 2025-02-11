@@ -2,6 +2,7 @@
 import { ValidationContext } from "./context";
 import { resolveSymbol } from "./resolve.symbol";
 import { ListSymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
+import { extractBooleanFields } from "./utils";
 
 export function resolveListSymbol(_symbol: Symbol, context: ValidationContext) {
   const symbol: ListSymbol = {
@@ -10,6 +11,8 @@ export function resolveListSymbol(_symbol: Symbol, context: ValidationContext) {
   };
 
   const { raw } = _symbol;
+
+  extractBooleanFields(symbol, _symbol.raw, ["nonempty"]);
 
   if (!("of" in raw)) {
     throw new Error(
@@ -79,6 +82,33 @@ export function resolveListSymbol(_symbol: Symbol, context: ValidationContext) {
       `List '${symbol.name}' cannot have an underlying of type '${symbol.of.type}'`,
     );
   }
+
+  const reapStuff = (name: string) => {
+    if (name in raw) {
+      if (
+        typeof (raw as any)[name] !== "object" ||
+        !Object.entries((raw as any)[name] || {}).length ||
+        !(raw as any)[name]
+      ) {
+        throw new Error(
+          `Expected an object of flags for the '@${name}' of '${symbol.name}'`,
+        );
+      }
+      const stuff = (raw as any)[name];
+
+      (symbol as any)[name] = {
+        kind: symbol.of.type as any,
+      };
+
+      Object.keys(stuff || {}).map((key) => {
+        ((symbol as any)[name] as any)[key] = (stuff as any)[key];
+      });
+    }
+  };
+
+  reapStuff("some");
+  reapStuff("every");
+  reapStuff("none");
 
   return symbol;
 }

@@ -33,7 +33,7 @@
       "trim": "string @trim",
       "time": "string @time",
       "datetime": "string @datetime",
-      "date": "string @date",
+      "datestring": "string @date",
       "secret": "string @secret",
       "ipaddress": "string @ipaddress",
       "email": "string @email",
@@ -55,8 +55,9 @@
       "camelcase": "string @camelcase",
       "pascalcase": "string @pascalcase",
       "userId": "string @id",
-      "dates": "date",
-      "dates2": "date @default(1999-08-29) @createdAt @optional"
+      "dates2": "date @default(1999-08-29) @createdAt @optional",
+      "numbers": "number[] @some(even) @every(positive)",
+      "strings": "string[] @some(lowercase) @nonempty"
     }
   }
 ]

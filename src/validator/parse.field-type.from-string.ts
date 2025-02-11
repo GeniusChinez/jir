@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { DateOptions } from "./dates.options";
+import { NumberOptions } from "./numbers.options";
+import { TextOptions } from "./text.options";
+
 export function parseFieldTypeFromString(field: string, type: string) {
-  if (!type.includes(" ")) {
-    return {
-      type: type,
-    };
-  }
+  // if (!type.includes(" ")) {
+  //   return {
+  //     type: type,
+  //   };
+  // }
 
   const split = type.split(" ");
 
@@ -20,28 +25,16 @@ export function parseFieldTypeFromString(field: string, type: string) {
     );
   }
 
-  const result: Record<string, string | boolean | number> = {
+  const result: Record<
+    string,
+    string | boolean | number | NumberOptions | TextOptions | DateOptions
+  > = {
     type: baseType,
   };
 
   switch (baseType) {
     case "number": {
-      const booleanFlags = [
-        "@id",
-        "@unique",
-        "@public",
-        "@private",
-        "@even",
-        "@odd",
-        "@negative",
-        "@positive",
-        "@nonnegative",
-        "@nonpositive",
-        "@nonzero",
-        "@abs",
-        "@autoincrement",
-        "@optional",
-      ];
+      const booleanFlags = numberBooleanFlags;
 
       for (const attribute of attributes) {
         if (booleanFlags.includes(attribute)) {
@@ -94,44 +87,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
       break;
     }
     case "string": {
-      const booleanFlags = [
-        "@id",
-        "@long",
-        "@medium",
-        "@short",
-        "@unique",
-        "@public",
-        "@private",
-        "@lowercase",
-        "@uppercase",
-        "@kebabcase",
-        "@screamingcase",
-        "@camelcase",
-        "@pascalcase",
-        "@nospecial",
-        "@nospaces",
-        "@nonempty",
-        "@alphanumeric",
-        "@alphabetic",
-        "@numeric",
-        "@url",
-        "@email",
-        "@ipaddress",
-        "@uuid",
-        "@cuid",
-        "@ulid",
-        "@cidr",
-        "@objectId",
-        "@slug",
-        "@base64",
-        "@trim",
-        "@time",
-        "@datetime",
-        "@date",
-        "@secret",
-        "@password",
-        "@optional",
-      ];
+      const booleanFlags = stringBooleanFlags;
 
       for (const attribute of attributes) {
         if (booleanFlags.includes(attribute)) {
@@ -164,13 +120,7 @@ export function parseFieldTypeFromString(field: string, type: string) {
       break;
     }
     case "date": {
-      const booleanFlags = [
-        "@future",
-        "@past",
-        "@updatedAt",
-        "@createdAt",
-        "@optional",
-      ];
+      const booleanFlags = dateBooleanFlags;
 
       for (const attribute of attributes) {
         if (booleanFlags.includes(attribute)) {
@@ -205,15 +155,174 @@ export function parseFieldTypeFromString(field: string, type: string) {
     case "boolean": {
       const booleanFlags: string[] = ["@optional"];
       for (const attribute of attributes) {
-        if (attribute in booleanFlags) {
+        if (booleanFlags.includes(attribute)) {
           result[attribute.slice(1)] = true;
-          break;
+          continue;
         }
         throw new Error(
           `'${field}' has an impermissible attribute '${attribute}'`,
         );
       }
       break;
+    }
+    case "number[]": {
+      const booleanFlags: string[] = ["@nonempty"];
+      for (const attribute of attributes) {
+        if (booleanFlags.includes(attribute)) {
+          result[attribute.slice(1)] = true;
+          continue;
+        }
+
+        if (attribute.startsWith("@map")) {
+          result["map"] = parseStringAttributeValue(attribute, field, "@map");
+          continue;
+        }
+
+        let found = false;
+        for (const [prefix, key] of Object.entries(listAttributeParsers)) {
+          if (attribute.startsWith(prefix)) {
+            result[key] = (() => {
+              const value = attribute.slice(
+                prefix.length,
+                attribute.indexOf(")"),
+              );
+              const memberAttributes = value.split(",");
+              const options: NumberOptions = {};
+              for (const memberAttribute of memberAttributes) {
+                if (numberBooleanFlags.includes(`@${memberAttribute}`)) {
+                  (options as any)[memberAttribute] = true;
+                } else {
+                  throw new Error(
+                    `Invalid attribute '${memberAttribute}' in the '${key}' of '${field}'`,
+                  );
+                }
+              }
+              return options;
+            })();
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          throw new Error(
+            `'${field}' has an impermissible attribute '${attribute}'`,
+          );
+        }
+      }
+      return {
+        ...result,
+        type: "list",
+        of: {
+          type: "number",
+        },
+      };
+    }
+    case "string[]": {
+      const booleanFlags: string[] = ["@nonempty"];
+      for (const attribute of attributes) {
+        if (booleanFlags.includes(attribute)) {
+          result[attribute.slice(1)] = true;
+          continue;
+        }
+
+        if (attribute.startsWith("@map")) {
+          result["map"] = parseStringAttributeValue(attribute, field, "@map");
+          continue;
+        }
+
+        let found = false;
+        for (const [prefix, key] of Object.entries(listAttributeParsers)) {
+          if (attribute.startsWith(prefix)) {
+            result[key] = (() => {
+              const value = attribute.slice(
+                prefix.length,
+                attribute.indexOf(")"),
+              );
+              const memberAttributes = value.split(",");
+              const options: NumberOptions = {};
+              for (const memberAttribute of memberAttributes) {
+                if (stringBooleanFlags.includes(`@${memberAttribute}`)) {
+                  (options as any)[memberAttribute] = true;
+                } else {
+                  throw new Error(
+                    `Invalid attribute '${memberAttribute}' in the '${key}' of '${field}'`,
+                  );
+                }
+              }
+              return options;
+            })();
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          throw new Error(
+            `'${field}' has an impermissible attribute '${attribute}'`,
+          );
+        }
+      }
+      return {
+        ...result,
+        type: "list",
+        of: {
+          type: "string",
+        },
+      };
+    }
+    case "boolean[]": {
+      const booleanFlags: string[] = ["@nonempty"];
+      for (const attribute of attributes) {
+        if (booleanFlags.includes(attribute)) {
+          result[attribute.slice(1)] = true;
+          continue;
+        }
+
+        if (attribute.startsWith("@map")) {
+          result["map"] = parseStringAttributeValue(attribute, field, "@map");
+          continue;
+        }
+
+        let found = false;
+        for (const [prefix, key] of Object.entries(listAttributeParsers)) {
+          if (attribute.startsWith(prefix)) {
+            result[key] = (() => {
+              const value = attribute.slice(
+                prefix.length,
+                attribute.indexOf(")"),
+              );
+              const memberAttributes = value.split(",");
+              const options: NumberOptions = {};
+              for (const memberAttribute of memberAttributes) {
+                if (booleanBooleanFlags.includes(`@${memberAttribute}`)) {
+                  (options as any)[memberAttribute] = true;
+                } else {
+                  throw new Error(
+                    `Invalid attribute '${memberAttribute}' in the '${key}' of '${field}'`,
+                  );
+                }
+              }
+              return options;
+            })();
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          throw new Error(
+            `'${field}' has an impermissible attribute '${attribute}'`,
+          );
+        }
+      }
+      return {
+        ...result,
+        type: "list",
+        of: {
+          type: "boolean",
+        },
+      };
     }
     default: {
       if (attributes.length) {
@@ -241,6 +350,12 @@ export const numericAttributeParsers: Record<string, string> = {
   "@minus(": "minus",
   "@divides(": "divides",
   "@divisor(": "divisor",
+};
+
+export const listAttributeParsers: Record<string, string> = {
+  "@every(": "every",
+  "@some(": "some",
+  "@none(": "none",
 };
 
 export const stringAttributeParsers: Record<
@@ -324,6 +439,72 @@ export const dateAttributeParsers: Record<
     type: "string",
   },
 };
+
+export const numberBooleanFlags = [
+  "@id",
+  "@unique",
+  "@public",
+  "@private",
+  "@even",
+  "@odd",
+  "@negative",
+  "@positive",
+  "@nonnegative",
+  "@nonpositive",
+  "@nonzero",
+  "@abs",
+  "@autoincrement",
+  "@optional",
+];
+
+export const stringBooleanFlags = [
+  "@id",
+  "@long",
+  "@medium",
+  "@short",
+  "@unique",
+  "@public",
+  "@private",
+  "@lowercase",
+  "@uppercase",
+  "@kebabcase",
+  "@screamingcase",
+  "@camelcase",
+  "@pascalcase",
+  "@nospecial",
+  "@nospaces",
+  "@nonempty",
+  "@alphanumeric",
+  "@alphabetic",
+  "@numeric",
+  "@url",
+  "@email",
+  "@ipaddress",
+  "@uuid",
+  "@cuid",
+  "@ulid",
+  "@cidr",
+  "@objectId",
+  "@slug",
+  "@base64",
+  "@trim",
+  "@time",
+  "@datetime",
+  "@date",
+  "@secret",
+  "@password",
+  "@optional",
+];
+
+export const dateBooleanFlags = [
+  "@future",
+  "@past",
+  "@updatedAt",
+  "@createdAt",
+  "@optional",
+];
+
+export const booleanBooleanFlags: string[] = [];
 
 export function parseNumericAttributeValue(
   attribute: string,
