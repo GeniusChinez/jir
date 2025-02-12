@@ -82,6 +82,12 @@ export function resolveObjectSymbol(
         `Abstract type '${type}' not allowed for '${displayName}'`,
       );
     }
+
+    if ("references" in resolved && resolved.references) {
+      throw new Error(
+        `Object property '${displayName}' must not reference other entities/objects`,
+      );
+    }
   });
 
   if ("extends" in raw) {

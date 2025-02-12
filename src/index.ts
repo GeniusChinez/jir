@@ -5,7 +5,7 @@ import { context, define } from "./validator";
 // === Read sample.json and call validate ===
 if (require.main === module) {
   try {
-    const data = fs.readFileSync("sample-ir/entities.operations.json", "utf-8");
+    const data = fs.readFileSync("sample-ir/entities.json", "utf-8");
     const parsed = JSON.parse(data);
 
     if (!Array.isArray(parsed)) {

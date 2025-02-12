@@ -12,5 +12,17 @@
       "age2": "number",
       "isOld": "boolean"
     }
+  },
+  {
+    "name": "Action",
+    "type": "entity",
+    "properties": {
+      "userId": {
+        "type": "string",
+        "references": "User",
+        "onDelete": "Cascade",
+        "id": true
+      }
+    }
   }
 ]
