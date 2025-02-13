@@ -1,12 +1,12 @@
 import * as fs from "fs";
 import { resolve } from "./validator/resolve";
 import { context, define } from "./validator";
-import { generateDataSource } from "./prisma/generate/generate.data-source";
+import { generateFromValidationContext } from "./prisma/generate/generate.from-context";
 
 // === Read sample.json and call validate ===
 if (require.main === module) {
   try {
-    const data = fs.readFileSync("sample-ir/entities.json", "utf-8");
+    const data = fs.readFileSync("sample-ir/enums.json", "utf-8");
     const parsed = JSON.parse(data);
 
     if (!Array.isArray(parsed)) {
@@ -20,22 +20,7 @@ if (require.main === module) {
     resolve(context);
     // console.log(JSON.stringify(context.table, null, 2));
 
-    const temp = generateDataSource({
-      url: {
-        type: "raw",
-        value: "databasex",
-      },
-      shadowDatabaseUrl: {
-        type: "raw",
-        value: "databaseaskdjladskjaldjks",
-      },
-      directUrl: {
-        type: "env",
-        value: "databaseaskdjladskjaldjks",
-      },
-      relationMode: "foreignKeys",
-      provider: "mongodb",
-    });
+    const temp = generateFromValidationContext(context, {});
 
     console.log(temp);
   } catch (err) {

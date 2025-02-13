@@ -37,8 +37,7 @@ export function generateDataSource(args: DataSourceArgs) {
 datasource ${name || "db"} {
   ${generateDataSourceField("provider", generateStringLiteral(provider))}
   ${generateDataSourceField("url", generateDataSourceUrl(url))}${shadowDatabaseUrl ? `\n  ${generateDataSourceField("shadowDatabaseUrl", generateDataSourceUrl(shadowDatabaseUrl))}` : ""}${directUrl ? `\n  ${generateDataSourceField("directUrl", generateDataSourceUrl(directUrl))}` : ""}${relationMode ? `\n  ${generateDataSourceField("relationMode", generateStringLiteral(relationMode))}` : ""}
-}
-`;
+}`;
   return result;
 }
 
