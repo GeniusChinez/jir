@@ -517,6 +517,10 @@ export function resolveEntitySymbol(
           "map" in raw.index && typeof raw.index.map === "string"
             ? raw.index.map
             : undefined,
+        ops:
+          "ops" in raw.index && typeof raw.index.ops === "string"
+            ? raw.index.ops
+            : undefined,
         length:
           "length" in raw.index && typeof raw.index.length === "number"
             ? raw.index.length
