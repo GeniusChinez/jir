@@ -6,7 +6,7 @@ import { generateFromValidationContext } from "./prisma/generate/generate.from-c
 // === Read sample.json and call validate ===
 if (require.main === module) {
   try {
-    const data = fs.readFileSync("sample-ir/enums.json", "utf-8");
+    const data = fs.readFileSync("sample-ir/entities.json", "utf-8");
     const parsed = JSON.parse(data);
 
     if (!Array.isArray(parsed)) {

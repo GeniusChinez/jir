@@ -28,6 +28,10 @@ export function resolveEntitySymbol(
 
   const { raw } = _symbol;
 
+  if ("map" in raw && typeof raw.map === "string") {
+    symbol.map = raw.map;
+  }
+
   if ("visibility" in raw) {
     if (typeof raw.visibility !== "string") {
       throw new Error(
@@ -175,6 +179,10 @@ export function resolveEntitySymbol(
     throw new Error(`Entity '${symbol.name}' is missing 'properties'`);
   }
 
+  if ("ignore" in raw && raw.ignore) {
+    symbol.ignore = true;
+  }
+
   if (!(raw.properties && typeof raw.properties === "object")) {
     throw new Error(
       `Entity '${symbol.name}' must have a valid 'properties' object`,
@@ -250,12 +258,325 @@ export function resolveEntitySymbol(
         objectId: context.target === "mongodb",
         id: true,
         autoincrement: context.target !== "mongodb",
+        default: context.target === "mongodb" ? "auto()" : "@autoincrement()",
       },
       status: SymbolStatus.Unresolved,
       type: context.target === "mongodb" ? SymbolKind.Text : SymbolKind.Number,
     },
     context,
   );
+
+  if ("compositeKey" in raw) {
+    if (
+      !Array.isArray(raw.compositeKey) ||
+      !raw.compositeKey.every((item) => typeof item === "string")
+    ) {
+      throw new Error(`'${symbol.name}.compositeKey' must be a list of names`);
+    }
+
+    for (const id of raw.compositeKey) {
+      if (!(id in symbol.properties)) {
+        throw new Error(
+          `'${symbol.name}.compositeKey' has field name '${id}' which doesn't exist in the entity`,
+        );
+      }
+    }
+    symbol.compositeKey = raw.compositeKey;
+  }
+
+  if ("schema" in raw) {
+    if (typeof raw.schema !== "string") {
+      throw new Error(`'${symbol.name}.schema' must be a string`);
+    }
+    symbol.schema = raw.schema;
+  }
+
+  if ("uniqueKey" in raw && raw.uniqueKey) {
+    if (typeof raw.uniqueKey === "string") {
+      if (!(raw.uniqueKey in symbol.properties)) {
+        throw new Error(
+          `'${symbol.name}.uniqueKey' has field name '${raw.uniqueKey}' which doesn't exist in the entity`,
+        );
+      }
+      symbol.uniqueKey = [raw.uniqueKey];
+    } else if (Array.isArray(raw.uniqueKey)) {
+      if (raw.uniqueKey.every((item) => typeof item === "string")) {
+        symbol.uniqueKey = raw.uniqueKey.map((item) => {
+          if (!(item in symbol.properties)) {
+            throw new Error(
+              `'${symbol.name}.uniqueKey.fields' has a field name '${item}' that isn't on the entity`,
+            );
+          }
+          return item;
+        });
+      } else {
+        symbol.uniqueKey = {
+          fields: raw.uniqueKey.map((item) => {
+            if (typeof item === "string") {
+              if (!(item in symbol.properties)) {
+                throw new Error(
+                  `'${symbol.name}.uniqueKey.fields' has a field name '${item}' that isn't on the entity`,
+                );
+              }
+              return {
+                name: item,
+              };
+            }
+            if (typeof item === "object") {
+              if (!("name" in item) || typeof item.name !== "string") {
+                throw new Error(
+                  `'${symbol.name}.uniqueKey' has field missing name: ${JSON.stringify(item)}`,
+                );
+              }
+              if (!(item.name in symbol.properties)) {
+                throw new Error(
+                  `'${symbol.name}.uniqueKey.fields' has a field name '${item.name}' that isn't on the entity`,
+                );
+              }
+              return {
+                name: item.name,
+                length:
+                  "length" in item && typeof item.length === "number"
+                    ? item.length
+                    : undefined,
+                sort:
+                  "sort" in item && typeof item.sort === "string"
+                    ? item.sort === "Desc"
+                      ? "Desc"
+                      : "Asc"
+                    : undefined,
+              };
+            }
+
+            throw new Error(
+              `'${symbol.name}.uniqueKey' has invalid specification: ${JSON.stringify(item)}`,
+            );
+          }),
+        };
+      }
+    } else if (typeof raw.uniqueKey === "object") {
+      if (!("fields" in raw.uniqueKey)) {
+        throw new Error(`'${symbol.name}.uniqueKey' is missing 'fields'`);
+      }
+
+      if (!Array.isArray(raw.uniqueKey.fields)) {
+        throw new Error(`'${symbol.name}.uniqueKey.fields' needs to be a list`);
+      }
+
+      if ("name" in raw.uniqueKey && typeof raw.uniqueKey.name !== "string") {
+        throw new Error(`'${symbol.name}.uniqueKey.name' must be a string`);
+      }
+
+      symbol.uniqueKey = {
+        name: (raw.uniqueKey as any).name,
+        map:
+          "map" in raw.uniqueKey && typeof raw.uniqueKey.map === "string"
+            ? raw.uniqueKey.map
+            : undefined,
+        length:
+          "length" in raw.uniqueKey && typeof raw.uniqueKey.length === "number"
+            ? raw.uniqueKey.length
+            : undefined,
+        clustered:
+          "clustered" in raw.uniqueKey &&
+          typeof raw.uniqueKey.clustered === "boolean"
+            ? raw.uniqueKey.clustered
+            : undefined,
+        sort:
+          "sort" in raw.uniqueKey &&
+          typeof raw.uniqueKey.sort === "string" &&
+          ["Asc", "Desc"].includes(raw.uniqueKey.sort)
+            ? (raw.uniqueKey.sort as "Asc" | "Desc")
+            : undefined,
+        fields: raw.uniqueKey.fields.map((item) => {
+          if (typeof item === "string") {
+            if (!(item in symbol.properties)) {
+              throw new Error(
+                `'${symbol.name}.uniqueKey.fields' has a field name '${item}' that isn't on the entity`,
+              );
+            }
+            return {
+              name: item,
+            };
+          }
+          if (typeof item === "object") {
+            if (!("name" in item) || typeof item.name !== "string") {
+              throw new Error(
+                `'${symbol.name}.uniqueKey.fields' has field missing name: ${JSON.stringify(item)}`,
+              );
+            }
+            if (!(item.name in symbol.properties)) {
+              throw new Error(
+                `'${symbol.name}.uniqueKey.fields' has a field name '${item.name}' that isn't on the entity`,
+              );
+            }
+            return {
+              name: item.name,
+              length:
+                "length" in item && typeof item.length === "number"
+                  ? item.length
+                  : undefined,
+              sort:
+                "sort" in item && typeof item.sort === "string"
+                  ? item.sort === "Desc"
+                    ? "Desc"
+                    : "Asc"
+                  : undefined,
+            };
+          }
+
+          throw new Error(
+            `'${symbol.name}.uniqueKey' has invalid specification: ${JSON.stringify(item)}`,
+          );
+        }),
+      };
+    } else {
+      throw new Error(`'${symbol.name}.uniqueKey' incorrectly specified`);
+    }
+  }
+
+  if ("index" in raw && raw.index) {
+    if (typeof raw.index === "string") {
+      if (!(raw.index in symbol.properties)) {
+        throw new Error(
+          `'${symbol.name}.index' has field name '${raw.index}' which doesn't exist in the entity`,
+        );
+      }
+      symbol.index = [raw.index];
+    } else if (Array.isArray(raw.index)) {
+      if (raw.index.every((item) => typeof item === "string")) {
+        symbol.index = raw.index.map((item) => {
+          if (!(item in symbol.properties)) {
+            throw new Error(
+              `'${symbol.name}.index.fields' has a field name '${item}' that isn't on the entity`,
+            );
+          }
+          return item;
+        });
+      } else {
+        symbol.index = {
+          fields: raw.index.map((item) => {
+            if (typeof item === "string") {
+              if (!(item in symbol.properties)) {
+                throw new Error(
+                  `'${symbol.name}.index.fields' has a field name '${item}' that isn't on the entity`,
+                );
+              }
+              return {
+                name: item,
+              };
+            }
+            if (typeof item === "object") {
+              if (!("name" in item) || typeof item.name !== "string") {
+                throw new Error(
+                  `'${symbol.name}.index' has field missing name: ${JSON.stringify(item)}`,
+                );
+              }
+              if (!(item.name in symbol.properties)) {
+                throw new Error(
+                  `'${symbol.name}.index.fields' has a field name '${item.name}' that isn't on the entity`,
+                );
+              }
+              return {
+                name: item.name,
+                length:
+                  "length" in item && typeof item.length === "number"
+                    ? item.length
+                    : undefined,
+                sort:
+                  "sort" in item && typeof item.sort === "string"
+                    ? item.sort === "Desc"
+                      ? "Desc"
+                      : "Asc"
+                    : undefined,
+              };
+            }
+
+            throw new Error(
+              `'${symbol.name}.index' has invalid specification: ${JSON.stringify(item)}`,
+            );
+          }),
+        };
+      }
+    } else if (typeof raw.index === "object") {
+      if (!("fields" in raw.index)) {
+        throw new Error(`'${symbol.name}.index' is missing 'fields'`);
+      }
+
+      if (!Array.isArray(raw.index.fields)) {
+        throw new Error(`'${symbol.name}.index.fields' needs to be a list`);
+      }
+
+      if ("name" in raw.index && typeof raw.index.name !== "string") {
+        throw new Error(`'${symbol.name}.index.name' must be a string`);
+      }
+
+      symbol.index = {
+        name: (raw.index as any).name,
+        map:
+          "map" in raw.index && typeof raw.index.map === "string"
+            ? raw.index.map
+            : undefined,
+        length:
+          "length" in raw.index && typeof raw.index.length === "number"
+            ? raw.index.length
+            : undefined,
+        clustered:
+          "clustered" in raw.index && typeof raw.index.clustered === "boolean"
+            ? raw.index.clustered
+            : undefined,
+        sort:
+          "sort" in raw.index &&
+          typeof raw.index.sort === "string" &&
+          ["Asc", "Desc"].includes(raw.index.sort)
+            ? (raw.index.sort as "Asc" | "Desc")
+            : undefined,
+        fields: raw.index.fields.map((item) => {
+          if (typeof item === "string") {
+            if (!(item in symbol.properties)) {
+              throw new Error(
+                `'${symbol.name}.index.fields' has a field name '${item}' that isn't on the entity`,
+              );
+            }
+            return {
+              name: item,
+            };
+          }
+          if (typeof item === "object") {
+            if (!("name" in item) || typeof item.name !== "string") {
+              throw new Error(
+                `'${symbol.name}.index.fields' has field missing name: ${JSON.stringify(item)}`,
+              );
+            }
+            if (!(item.name in symbol.properties)) {
+              throw new Error(
+                `'${symbol.name}.index.fields' has a field name '${item.name}' that isn't on the entity`,
+              );
+            }
+            return {
+              name: item.name,
+              length:
+                "length" in item && typeof item.length === "number"
+                  ? item.length
+                  : undefined,
+              sort:
+                "sort" in item && typeof item.sort === "string"
+                  ? item.sort === "Desc"
+                    ? "Desc"
+                    : "Asc"
+                  : undefined,
+            };
+          }
+
+          throw new Error(
+            `'${symbol.name}.index' has invalid specification: ${JSON.stringify(item)}`,
+          );
+        }),
+      };
+    } else {
+      throw new Error(`'${symbol.name}.index' incorrectly specified`);
+    }
+  }
 
   return symbol;
 }

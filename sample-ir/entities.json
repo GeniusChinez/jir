@@ -4,25 +4,59 @@
     "type": "entity",
     "properties": {
       "name": {
-        "type": "string"
+        "type": "string",
+        "db": [
+          "VarChar(255)"
+        ]
       },
-      "age": {
-        "type": "number"
-      },
-      "age2": "number",
-      "isOld": "boolean"
-    }
+      "action": "Action"
+    },
+    "map": "users",
+    "compositeKey": [
+      "name",
+      "action",
+      "id"
+    ],
+    "uniqueKey": {
+      "fields": [
+        "name",
+        {
+          "name": "action",
+          "sort": "Asc"
+        }
+      ],
+      "sort": "Desc"
+    },
+    "index": {
+      "fields": [
+        {
+          "name": "action",
+          "sort": "Asc"
+        }
+      ],
+      "sort": "Desc"
+    },
+    "schema": "Parasocial"
   },
   {
     "name": "Action",
-    "type": "entity",
+    "type": "object",
+    "map": "action",
     "properties": {
-      "userId": {
-        "type": "string",
-        "references": "User",
-        "onDelete": "Cascade",
-        "id": true
-      }
+      "field1": {
+        "type": "list",
+        "of": "Kind"
+      },
+      "createdAt": "date @createdAt @map(created_at)",
+      "updatedAt": "date @updatedAt @map(updated_at)"
     }
+  },
+  {
+    "name": "Kind",
+    "type": "enum",
+    "values": [
+      "Revenge",
+      "Equitable"
+    ]
   }
 ]

@@ -27,6 +27,7 @@ export interface Symbol {
   type: SymbolKind;
   raw: object;
   map?: string;
+  db?: string[];
   visibility?: "public" | "private" | "admin" | "system" | "inherit"; // being optional means inherit
 }
 
@@ -69,6 +70,7 @@ export interface ObjectSymbol extends Symbol {
 }
 
 export interface TextSymbol extends Symbol, TextOptions {
+  defaultValue?: string;
   references?: {
     name: string;
     field: string;
@@ -97,12 +99,44 @@ export interface EntitySymbol extends Symbol {
       type: SymbolKind;
       status: SymbolStatus;
       optional?: boolean;
+      // relations
     };
   };
   abstract?: boolean; // is purely inherited from...never instantiated concretely
   final?: boolean; // cannot be inherited from
   operations: string[];
   permissions: Record<string, string[]>;
+
+  uniqueKey?:
+    | {
+        fields: (
+          | string
+          | { name: string; length?: number; sort?: "Asc" | "Desc" }
+        )[];
+        name?: string;
+        map?: string;
+        length?: number;
+        sort?: "Asc" | "Desc";
+        clustered?: boolean;
+      }
+    | string[];
+  index?:
+    | {
+        fields: (
+          | string
+          | { name: string; length?: number; sort?: "Asc" | "Desc" }
+        )[];
+        name?: string;
+        map?: string;
+        length?: number;
+        sort?: "Asc" | "Desc";
+        clustered?: boolean;
+        ops?: string;
+      }
+    | string[];
+  ignore?: boolean;
+  compositeKey?: string[];
+  schema?: string;
 }
 
 export type SymbolTable = { [key: string]: Symbol };

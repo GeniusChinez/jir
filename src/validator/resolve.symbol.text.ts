@@ -116,9 +116,12 @@ export function resolveTextSymbol(_symbol: Symbol, context: ValidationContext) {
 
   reapNumberValue("max");
   reapNumberValue("min");
-  reapNumberValue("default", "defaultValue");
   reapNumberValue("eq");
   reapNumberValue("neq");
+
+  if ("default" in raw && typeof raw.default === "string") {
+    symbol.defaultValue = raw.default;
+  }
 
   const reapStringValue = (name: string, rename?: string) => {
     if (name in raw) {

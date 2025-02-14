@@ -13,6 +13,18 @@ export function actuallyResolveSymbol(
   symbol: Symbol,
   context: ValidationContext,
 ) {
+  if (typeof symbol.raw === "object" && "db" in symbol.raw && symbol.raw.db) {
+    if (Array.isArray(symbol.raw.db)) {
+      symbol.db = symbol.raw.db;
+    } else if (typeof symbol.raw.db === "string") {
+      symbol.db = [symbol.raw.db];
+    } else {
+      throw new Error(
+        `Found unknown 'db' type '${JSON.stringify(symbol.raw.db)}' for '${symbol.name}'`,
+      );
+    }
+  }
+
   switch (symbol.type) {
     case SymbolKind.Text:
       return resolveTextSymbol(symbol, context);
