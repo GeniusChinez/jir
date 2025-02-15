@@ -1,4 +1,4 @@
-import { ValidationContext } from "./context";
+import { ValidationContext } from "../context";
 import { actuallyResolveSymbol } from "./resolve.symbol.actually";
 import { Symbol, SymbolStatus } from "./symbols";
 

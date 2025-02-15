@@ -1,0 +1,36 @@
+import { z } from "zod";
+
+export const hashingAlgorithms = [
+  "MD2",
+  "MD4",
+  "MD5",
+  "SHA-1",
+  "SHA-224",
+  "SHA-256",
+  "SHA-384",
+  "SHA-512",
+  "SHA-512/224",
+  "SHA-512/256",
+  "SHA3-224",
+  "SHA3-256",
+  "SHA3-384",
+  "SHA3-512",
+  "BLAKE2b",
+  "BLAKE2s",
+  "BLAKE3",
+  "RIPEMD-128",
+  "RIPEMD-160",
+  "RIPEMD-256",
+  "RIPEMD-320",
+  "Whirlpool",
+  "Tiger",
+  "SM3",
+  "Streebog-256",
+  "Streebog-512",
+  "XXHash32",
+  "XXHash64",
+  "SipHash",
+  "CRC32",
+] as const;
+
+export const HashingAlgorithmSchema = z.enum(hashingAlgorithms);

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isValidColumnName } from "./chars";
-import { ValidationContext } from "./context";
+import { isValidColumnName } from "../chars";
+import { ValidationContext } from "../context";
 import { resolveName } from "./resolve.name";
 import { FKOnChange, NumberSymbol, Symbol, SymbolKind } from "./symbols";
-import { checkConflicts, extractBooleanFields } from "./utils";
+import { checkConflicts, extractBooleanFields } from "../utils";
 
 export function resolveNumberSymbol(
   _symbol: Symbol,

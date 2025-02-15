@@ -1,4 +1,4 @@
-import { ValidationContext } from "./context";
+import { ValidationContext } from "../context";
 import { resolveSymbol } from "./resolve.symbol";
 
 export function resolve(context: ValidationContext) {

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ValidationContext } from "./context";
+import { ValidationContext } from "../context";
 import { resolveSymbol } from "./resolve.symbol";
 import { ListSymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
-import { extractBooleanFields } from "./utils";
+import { extractBooleanFields } from "../utils";
 
 export function resolveListSymbol(_symbol: Symbol, context: ValidationContext) {
   const symbol: ListSymbol = {

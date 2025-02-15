@@ -1,12 +1,12 @@
-import { ValidationContext } from "./context";
+import { ValidationContext } from "../context";
 import { resolveName } from "./resolve.name";
 import { resolveDateTimeSymbol } from "./resolve.symbol.date";
-import { resolveEntitySymbol } from "./resolve.symbol.entity";
-import { resolveEnumSymbol } from "./resolve.symbol.enum";
+import { resolveEntitySymbol } from "../resolve.symbol.entity";
+import { resolveEnumSymbol } from "../resolve.symbol.enum";
 import { resolveListSymbol } from "./resolve.symbol.list";
-import { resolveNumberSymbol } from "./resolve.symbol.number";
-import { resolveObjectSymbol } from "./resolve.symbol.object";
-import { resolveTextSymbol } from "./resolve.symbol.text";
+import { resolveNumberSymbol } from "../resolve.symbol.number";
+import { resolveObjectSymbol } from "../resolve.symbol.object";
+import { resolveTextSymbol } from "../resolve.symbol.text";
 import { Symbol, SymbolKind } from "./symbols";
 
 export function actuallyResolveSymbol(

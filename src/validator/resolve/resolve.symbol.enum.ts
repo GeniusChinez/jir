@@ -1,7 +1,7 @@
-import { ValidationContext } from "./context";
+import { ValidationContext } from "../context";
 import { resolveName } from "./resolve.name";
 import { EnumSymbol, Symbol, SymbolKind } from "./symbols";
-import { extractBooleanFields } from "./utils";
+import { extractBooleanFields } from "../utils";
 
 export function resolveEnumSymbol(_symbol: Symbol, context: ValidationContext) {
   const symbol: EnumSymbol = {

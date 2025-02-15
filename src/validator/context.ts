@@ -1,6 +1,7 @@
-import { SymbolTable } from "./symbols";
+import { SymbolTable } from "./symbols/_table";
+import { TargetDatabase } from "./target";
 
 export interface ValidationContext {
   table: SymbolTable;
-  target: "mongodb" | "mysql" | "sqlite" | "postgresql";
+  target: TargetDatabase;
 }

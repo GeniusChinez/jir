@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isAlnum, isAlpha } from "./chars";
-import { ValidationContext } from "./context";
-import { parseFieldTypeFromString } from "./parse.field-type.from-string";
+import { isAlnum, isAlpha } from "../chars";
+import { ValidationContext } from "../context";
+import { parseFieldTypeFromString } from "../parse.field-type.from-string";
 import { resolveName } from "./resolve.name";
-import { resolveSymbol } from "./resolve.symbol";
-import { parseTypeFromSource } from "./source-types";
+import { resolveSymbol } from "../resolve.symbol";
+import { parseTypeFromSource } from "../source-types";
 import { ObjectSymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
 
 export function resolveObjectSymbol(

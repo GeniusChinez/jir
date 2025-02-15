@@ -26,6 +26,7 @@ export function define(details: any) {
     name,
     referenceCount: 0,
     raw: details,
+    visibility: "public",
     status: SymbolStatus.Unresolved,
     type: (() => {
       switch (details.type) {

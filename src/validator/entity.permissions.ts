@@ -1,25 +1,5 @@
 import { z } from "zod";
-
-export const globalEntityOperations: string[] = [
-  "add-one",
-  "add-many",
-  "get-one",
-  "get-many",
-  "edit-one",
-  "edit-many",
-];
-
-export const EntityOperationsSchema = z
-  .string()
-  .array()
-  .or(z.literal("*"))
-  .transform((item) => {
-    if (item === "*") {
-      // Return a list of all operations when "*" is encountered
-      return globalEntityOperations;
-    }
-    return item;
-  });
+import { globalEntityOperations } from "./entity.operations";
 
 export const EntityPermissionsSchema = (
   entityOperations = globalEntityOperations,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DateOptions } from "./dates.options";
-import { NumberOptions } from "./numbers.options";
-import { TextOptions } from "./text.options";
+import { DateOptions } from "./options/dates";
+import { NumberOptions } from "./options/numbers";
+import { TextOptions } from "./options/text";
 
 export function parseFieldTypeFromString(field: string, type: string) {
   // if (!type.includes(" ")) {

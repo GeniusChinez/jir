@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isAlnum, isAlpha } from "./chars";
-import { ValidationContext } from "./context";
+import { isAlnum, isAlpha } from "../chars";
+import { ValidationContext } from "../context";
 import {
   EntityOperationsSchema,
   EntityPermissionsSchema,
   globalEntityOperations,
-} from "./entity";
-import { parseFieldTypeFromString } from "./parse.field-type.from-string";
+} from "../entity.permissions";
+import { parseFieldTypeFromString } from "../parse.field-type.from-string";
 import { resolveName } from "./resolve.name";
-import { resolveSymbol } from "./resolve.symbol";
-import { parseTypeFromSource } from "./source-types";
+import { resolveSymbol } from "../resolve.symbol";
+import { parseTypeFromSource } from "../source-types";
 import { EntitySymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
 
 export function resolveEntitySymbol(
@@ -241,6 +241,12 @@ export function resolveEntitySymbol(
       ...resolved,
       optional: "optional" in expandedProperty && !!expandedProperty.optional,
     };
+
+    if ("references" in resolved) {
+      // ........ ALSO, THE SYMBOLS NEED TO BE READIED FOR PRISMA GENERATION. REFERENCES WILL NEED
+      // ... OPPOSING RELATIONS, ETC ETC. ALSO THE RELATIONS NEED TO BE AUTO-NAMED
+      console.log("References", resolved.references);
+    }
 
     if ("abstract" in resolved && !!resolved.abstract) {
       throw new Error(
