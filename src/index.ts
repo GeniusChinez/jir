@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { resolve } from "./validator/resolve";
+// import { resolve } from "./validator/resolve";
 import { context, define } from "./validator";
 import { generateFromValidationContext } from "./prisma/generate/generate.from-context";
 
@@ -17,7 +17,7 @@ if (require.main === module) {
       define(item);
     }
 
-    resolve(context);
+    // resolve(context);
     // console.log(JSON.stringify(context.table, null, 2));
 
     const temp = generateFromValidationContext(context, {});
