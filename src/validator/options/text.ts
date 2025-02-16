@@ -43,6 +43,7 @@ export const TextValidationOptionsSchema = z.object({
   id: z.boolean().optional(),
   in: z.string().array().optional(),
   notIn: z.string().array().optional(),
+  regex: z.string().optional(),
 });
 
 export type TextValidationOptions = z.infer<typeof TextValidationOptionsSchema>;

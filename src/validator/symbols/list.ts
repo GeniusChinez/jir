@@ -10,7 +10,8 @@ export const ListSymbolSchema = SymbolSchema.extend({
   nonempty: BooleanSchema.optional(),
   some: NumberOptionsSchema.extend({ kind: z.literal(SymbolKind.Number) })
     .or(TextOptionsSchema.extend({ kind: z.literal(SymbolKind.Text) }))
-    .or(DateOptionsSchema.extend({ kind: z.literal(SymbolKind.DateTime) })),
+    .or(DateOptionsSchema.extend({ kind: z.literal(SymbolKind.DateTime) }))
+    .or(z.object({ kind: z.literal(SymbolKind.Boolean) })),
 });
 
 export type ListSymbol = z.infer<typeof ListSymbolSchema>;
