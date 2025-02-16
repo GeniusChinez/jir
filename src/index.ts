@@ -1,7 +1,7 @@
 import * as fs from "fs";
 // import { resolve } from "./validator/resolve";
-import { context, define } from "./validator";
-import { generateFromValidationContext } from "./prisma/generate/generate.from-context";
+import { define } from "./validator";
+// import { generateFromValidationContext } from "./prisma/generate/generate.from-context";
 
 // === Read sample.json and call validate ===
 if (require.main === module) {
@@ -20,9 +20,9 @@ if (require.main === module) {
     // resolve(context);
     // console.log(JSON.stringify(context.table, null, 2));
 
-    const temp = generateFromValidationContext(context, {});
+    // const temp = generateFromValidationContext(context, {});
 
-    console.log(temp);
+    // console.log(temp);
   } catch (err) {
     console.error("Error:", err);
     process.exit(1);
