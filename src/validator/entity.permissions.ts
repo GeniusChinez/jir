@@ -14,11 +14,11 @@ export const EntityPermissionsSchema = (
 
       if ("*" in stuff) {
         const value = stuff["*"];
-        transformed["*"] = value === "*" ? entityOperations : value;
+        transformed["*"] = value === "*" ? [...entityOperations] : value;
 
         if (value === "*") {
           for (const role in stuff) {
-            transformed[role] = entityOperations;
+            transformed[role] = [...entityOperations];
           }
           return transformed;
         }
@@ -30,7 +30,7 @@ export const EntityPermissionsSchema = (
         }
 
         if (stuff[role] === "*") {
-          transformed[role] = entityOperations;
+          transformed[role] = [...entityOperations];
         } else {
           transformed[role] = stuff[role];
         }
