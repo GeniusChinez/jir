@@ -6,13 +6,15 @@ export const ObjectSymbolPropertySchema = z.object({
   name: z.string(),
   type: SymbolKindSchema,
   status: SymbolStatusSchema,
-  required: BooleanSchema,
+  optional: BooleanSchema.optional(),
 });
 
-export const ObjectSymbolSchema = SymbolSchema.extend({
+export const RawObjectSymbolSchema = z.object({
   properties: z.record(z.string(), ObjectSymbolPropertySchema),
   abstract: BooleanSchema.optional(),
   final: BooleanSchema.optional(),
+  extends: z.string().or(z.string().array()).optional(),
 });
 
+export const ObjectSymbolSchema = SymbolSchema.merge(RawObjectSymbolSchema);
 export type ObjectSymbol = z.infer<typeof ObjectSymbolSchema>;

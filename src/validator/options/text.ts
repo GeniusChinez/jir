@@ -1,6 +1,7 @@
-import { EncryptionAlgorithmSchema } from "src/helpers/encryption.algorithms";
-import { HashingAlgorithmSchema } from "src/helpers/hashing.algorithms";
+import { EncryptionAlgorithmSchema } from "../../helpers/encryption.algorithms";
+import { HashingAlgorithmSchema } from "../../helpers/hashing.algorithms";
 import { z } from "zod";
+import { BooleanSchema } from "../boolean.schema";
 
 export const TextTranformationOptionsSchema = z.object({
   lowercase: z.boolean().optional(),
@@ -23,6 +24,8 @@ export type TextTranformationOptions = z.infer<
 >;
 
 export const TextValidationOptionsSchema = z.object({
+  max: z.number().nonnegative().optional(),
+  min: z.number().nonnegative().optional(),
   nonempty: z.boolean().optional(),
   nospecial: z.boolean().optional(),
   alphanumeric: z.boolean().optional(),
@@ -42,8 +45,15 @@ export const TextValidationOptionsSchema = z.object({
   date: z.boolean().optional(),
   id: z.boolean().optional(),
   in: z.string().array().optional(),
+  includes: z.string().or(z.string().array()).optional(),
+  excludes: z.string().or(z.string().array()).optional(),
   notIn: z.string().array().optional(),
   regex: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  long: BooleanSchema.optional(),
+  medium: BooleanSchema.optional(),
+  short: BooleanSchema.optional(),
 });
 
 export type TextValidationOptions = z.infer<typeof TextValidationOptionsSchema>;

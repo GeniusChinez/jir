@@ -28,7 +28,7 @@ export const EntityPropertySchema = z.object({
   relations: ReferenceSchema.optional(),
 });
 
-export const EntitySymbolSchema = SymbolSchema.extend({
+export const RawEntitySymbolSchema = z.object({
   properties: z.record(z.string(), EntityPropertySchema),
   permissions: z.record(z.string(), z.string().array()),
   abstract: BooleanSchema.optional(),
@@ -41,4 +41,5 @@ export const EntitySymbolSchema = SymbolSchema.extend({
   index: EntityIndexSchema.optional(),
 });
 
+export const EntitySymbolSchema = SymbolSchema.merge(RawEntitySymbolSchema);
 export type EntitySymbol = z.infer<typeof EntitySymbolSchema>;

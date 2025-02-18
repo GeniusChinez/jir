@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { VisibilitySchema } from "../visibility";
+import { BooleanSchema } from "../boolean.schema";
 
 export type { ListSymbol } from "./list";
 export type { NumberSymbol } from "./number";
@@ -40,8 +41,13 @@ export const SymbolSchema = z.object({
   type: SymbolKindSchema,
   raw: z.unknown(),
   map: z.string().optional(),
-  db: z.string().optional(),
+  db: z.string().array().optional(),
   visibility: VisibilitySchema,
+  optional: BooleanSchema.optional(),
+  final: BooleanSchema.optional(),
+  abstract: BooleanSchema.optional(),
 });
 
 export type Symbol = z.infer<typeof SymbolSchema>;
+
+// NOTE: WE HIT A BRICK WALL!!!! We have to have separate schemas for the symbol and for the raw thing to be parsed.

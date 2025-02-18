@@ -1,17 +1,17 @@
-import { DateOptionsSchema } from "../options/dates";
-import { NumberOptionsSchema } from "../options/numbers";
-import { SymbolKind, SymbolSchema } from ".";
-import { TextOptionsSchema } from "../options/text";
+import { SymbolSchema } from ".";
 import { BooleanSchema } from "../boolean.schema";
 import { z } from "zod";
 
-export const ListSymbolSchema = SymbolSchema.extend({
+export const RawListSymbolSchema = z.object({
   of: SymbolSchema,
   nonempty: BooleanSchema.optional(),
-  some: NumberOptionsSchema.extend({ kind: z.literal(SymbolKind.Number) })
-    .or(TextOptionsSchema.extend({ kind: z.literal(SymbolKind.Text) }))
-    .or(DateOptionsSchema.extend({ kind: z.literal(SymbolKind.DateTime) }))
-    .or(z.object({ kind: z.literal(SymbolKind.Boolean) })),
+  empty: BooleanSchema.optional(),
+  min: z.number().nonnegative().optional(),
+  max: z.number().nonnegative().optional(),
+  some: z.record(z.string(), z.any()).optional(),
+  every: z.record(z.string(), z.any()).optional(),
+  none: z.record(z.string(), z.any()).optional(),
 });
 
+export const ListSymbolSchema = SymbolSchema.merge(RawListSymbolSchema);
 export type ListSymbol = z.infer<typeof ListSymbolSchema>;

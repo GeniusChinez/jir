@@ -1,162 +1,148 @@
-// /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { isAlnum, isAlpha } from "../chars";
-// import { ValidationContext } from "../context";
-// import { parseFieldTypeFromString } from "../parse.field-type.from-string";
-// import { resolveName } from "./resolve.name";
-// import { resolveSymbol } from "../resolve.symbol";
-// import { parseTypeFromSource } from "../source-types";
-// import { ObjectSymbol, Symbol, SymbolKind, SymbolStatus } from "./symbols";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-// export function resolveObjectSymbol(
-//   _symbol: Symbol,
-//   context: ValidationContext,
-// ) {
-//   const symbol: ObjectSymbol = {
-//     ..._symbol,
-//     properties: {},
-//     final: "final" in _symbol.raw && !!_symbol.raw.final,
-//     abstract: "abstract" in _symbol.raw && !!_symbol.raw.abstract,
-//   };
+import { ValidationContext } from "../context";
+import { resolveName } from "./resolve.name";
+import { Symbol, SymbolKind, SymbolStatus } from "../symbols";
+import { ObjectSymbol, RawObjectSymbolSchema } from "../symbols/object";
+import { isAlnum, isAlpha } from "../chars";
+import { parseFieldType } from "../type";
+import { parseTypeFromSource } from "../source-types";
+import { resolveSymbol } from "./resolve.symbol";
+import { resolveSymbolFromSchema } from "./resolve.symbol.from-schema";
 
-//   const { raw } = _symbol;
+export function resolveObjectSymbol(
+  _symbol: Symbol,
+  context: ValidationContext,
+) {
+  const symbol = resolveSymbolFromSchema(
+    _symbol,
+    RawObjectSymbolSchema.omit({
+      properties: true,
+    }),
+  );
+  const object = { ...symbol, properties: {} } as ObjectSymbol;
 
-//   if (!("properties" in raw)) {
-//     throw new Error(`Object '${symbol.name}' is missing 'properties'`);
-//   }
+  const { raw } = _symbol;
 
-//   if (!(raw.properties && typeof raw.properties === "object")) {
-//     throw new Error(
-//       `Object '${symbol.name}' must have a valid 'properties' object`,
-//     );
-//   }
+  if (!raw || typeof raw !== "object" || !("properties" in raw)) {
+    throw new Error(`Object '${symbol.name}' is missing 'properties'`);
+  }
 
-//   Object.keys(raw.properties).forEach((propertyName) => {
-//     if (
-//       !propertyName ||
-//       !propertyName.split(" ").every((ch) => isAlnum(ch) || ch === "_")
-//     ) {
-//       throw new Error(
-//         `Object '${symbol.name}' property '${propertyName}' must be made of alphabets and or digits`,
-//       );
-//     }
+  const properties = raw.properties;
 
-//     if (!isAlpha(propertyName[0])) {
-//       throw new Error(
-//         `Object '${symbol.name}' property '${propertyName}' must start with an alphabet`,
-//       );
-//     }
+  if (!(properties && typeof properties === "object")) {
+    throw new Error(
+      `Object '${symbol.name}' must have a valid 'properties' object`,
+    );
+  }
 
-//     const properties = raw.properties as any;
-//     const property = properties[propertyName];
+  Object.keys(properties).forEach((nameOfProperty) => {
+    if (
+      !nameOfProperty ||
+      !nameOfProperty.split(" ").every((ch) => isAlnum(ch) || ch === "_")
+    ) {
+      throw new Error(
+        `Object '${symbol.name}' property '${nameOfProperty}' must be made of alphabets and or digits`,
+      );
+    }
 
-//     const displayName = `${symbol.name}.${propertyName}`;
+    if (nameOfProperty[0] !== "_" && !isAlpha(nameOfProperty[0])) {
+      throw new Error(
+        `Object '${symbol.name}' property '${nameOfProperty}' must start with an alphabet or '_'`,
+      );
+    }
 
-//     const expandedProperty =
-//       typeof property !== "string"
-//         ? property
-//         : parseFieldTypeFromString(displayName, property);
+    const property = (properties as any)[nameOfProperty];
+    const displayName = `${symbol.name}.${nameOfProperty}`;
 
-//     const type = parseTypeFromSource(expandedProperty) as SymbolKind;
-//     if (type === SymbolKind.Entity) {
-//       throw new Error(
-//         `type '${property.type}' not allowed for '${displayName}'`,
-//       );
-//     }
+    const expandedProperty =
+      typeof property !== "string"
+        ? (() => {
+            if (!("type" in property)) {
+              throw new Error(
+                `Object '${symbol.name}' property '${nameOfProperty}' has an unknown type`,
+              );
+            }
+            return {
+              ...property,
+              ...parseFieldType(`${displayName}$type`, property.type),
+            };
+          })()
+        : parseFieldType(displayName, property);
 
-//     const propertyAsSymbol: Symbol = {
-//       name: displayName,
-//       referenceCount: 0,
-//       raw: expandedProperty,
-//       status: SymbolStatus.Unresolved,
-//       type,
-//     };
+    const type = parseTypeFromSource(expandedProperty) as SymbolKind;
+    if (type === SymbolKind.Entity) {
+      throw new Error(
+        `type '${property.type}' not allowed for '${displayName}'`,
+      );
+    }
 
-//     const resolved = resolveSymbol(propertyAsSymbol, context);
-//     symbol.properties[propertyName] = {
-//       ...resolved,
-//       optional: "optional" in expandedProperty && !!expandedProperty.optional,
-//     };
+    console.log("Expanded", expandedProperty);
 
-//     if ("abstract" in resolved && !!resolved.abstract) {
-//       throw new Error(
-//         `Abstract type '${type}' not allowed for '${displayName}'`,
-//       );
-//     }
+    const propertyAsSymbol: Symbol = {
+      name: displayName,
+      referenceCount: 0,
+      raw: expandedProperty,
+      status: SymbolStatus.Unresolved,
+      type,
+      visibility: "inherit", // actually, each can have it's own visibility
+    };
 
-//     if ("references" in resolved && resolved.references) {
-//       throw new Error(
-//         `Object property '${displayName}' must not reference other entities/objects`,
-//       );
-//     }
-//   });
+    const resolved = resolveSymbol(propertyAsSymbol, context);
+    object.properties[nameOfProperty] = resolved;
 
-//   if ("extends" in raw) {
-//     if (typeof raw.extends === "string") {
-//       const parent = resolveName(raw.extends, context);
+    if (resolved.abstract) {
+      throw new Error(
+        `Abstract type '${type}' not allowed for '${displayName}'`,
+      );
+    }
 
-//       if ("final" in parent && parent.final) {
-//         throw new Error(
-//           `'${symbol.name}' cannot extend '${raw.extends}' as that guy is marked 'final'`,
-//         );
-//       }
+    if ("reference" in resolved && resolved.reference) {
+      throw new Error(
+        `Object property '${displayName}' must not reference other entities/objects`,
+      );
+    }
+  });
 
-//       if (![SymbolKind.Entity, SymbolKind.Object].includes(parent.type)) {
-//         throw new Error(
-//           `'${symbol.name}' cannot extend a non-entity/object type '${raw.extends}'`,
-//         );
-//       }
+  if (symbol.extends) {
+    const shouldExtend = Array.isArray(symbol.extends)
+      ? symbol.extends
+      : [symbol.extends];
+    if (shouldExtend.length) {
+      for (const proposedParent of shouldExtend) {
+        if (typeof proposedParent === "string") {
+          const parent = resolveName(proposedParent, context);
 
-//       if (!("properties" in parent)) {
-//         throw new Error(
-//           `'${symbol.name}' is extending a type with missing properties '${raw.extends}'`,
-//         );
-//       }
+          if ("final" in parent && parent.final) {
+            throw new Error(
+              `'${symbol.name}' cannot extend '${proposedParent}' as that guy is marked 'final'`,
+            );
+          }
 
-//       symbol.properties = {
-//         ...symbol.properties,
-//         ...(parent.properties as object),
-//       };
-//     } else if (typeof raw.extends === "object" && Array.isArray(raw.extends)) {
-//       if (raw.extends.length) {
-//         for (const proposedParent of raw.extends) {
-//           if (typeof proposedParent === "string") {
-//             const parent = resolveName(proposedParent, context);
+          if (![SymbolKind.Entity, SymbolKind.Object].includes(parent.type)) {
+            throw new Error(
+              `'${symbol.name}' cannot extend a non-entity/object type '${proposedParent}'`,
+            );
+          }
 
-//             if ("final" in parent && parent.final) {
-//               throw new Error(
-//                 `'${symbol.name}' cannot extend '${proposedParent}' as that guy is marked 'final'`,
-//               );
-//             }
+          if (!("properties" in parent)) {
+            throw new Error(
+              `'${symbol.name}' is extending a type with missing properties '${proposedParent}'`,
+            );
+          }
 
-//             if (![SymbolKind.Entity, SymbolKind.Object].includes(parent.type)) {
-//               throw new Error(
-//                 `'${symbol.name}' cannot extend a non-entity/object type '${proposedParent}'`,
-//               );
-//             }
+          object.properties = {
+            ...object.properties,
+            ...(parent.properties as object),
+          };
+        } else {
+          throw new Error(
+            `Expected a list of aliases in the 'extends' of '${object.name}'`,
+          );
+        }
+      }
+    }
+  }
 
-//             if (!("properties" in parent)) {
-//               throw new Error(
-//                 `'${symbol.name}' is extending a type with missing properties '${proposedParent}'`,
-//               );
-//             }
-
-//             symbol.properties = {
-//               ...symbol.properties,
-//               ...(parent.properties as object),
-//             };
-//           } else {
-//             throw new Error(
-//               `Expected a list of aliases in the 'extends' of '${symbol.name}'`,
-//             );
-//           }
-//         }
-//       }
-//     } else {
-//       throw new Error(
-//         `'${symbol.name}' expected an alias or list of aliases in "extends"`,
-//       );
-//     }
-//   }
-
-//   return symbol;
-// }
+  return object;
+}

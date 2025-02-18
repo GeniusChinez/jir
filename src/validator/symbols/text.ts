@@ -4,13 +4,13 @@ import { TextOptionsSchema } from "../options/text";
 import { BooleanSchema } from "../boolean.schema";
 import { ReferenceSchema } from "../reference.schema";
 
-export const TextSymbolSchema = SymbolSchema.extend({
-  defaultValue: z.string().optional(),
-  references: ReferenceSchema.optional(),
-  unique: BooleanSchema.optional(),
-  long: BooleanSchema.optional(),
-  medium: BooleanSchema.optional(),
-  short: BooleanSchema.optional(),
-}).merge(TextOptionsSchema);
+export const RawTextSymbolSchema = z
+  .object({
+    defaultValue: z.string().optional(),
+    reference: ReferenceSchema.optional(),
+    unique: BooleanSchema.optional(),
+  })
+  .merge(TextOptionsSchema);
 
+export const TextSymbolSchema = SymbolSchema.merge(RawTextSymbolSchema);
 export type TextSymbol = z.infer<typeof TextSymbolSchema>;

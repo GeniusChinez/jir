@@ -1,0 +1,15 @@
+// dummy file
+entity User
+  - email:string
+    . startsWith "Genius"
+    . includes "somewhat"
+  - phone:string
+    . min 10
+    . startsWith "+263"
+  - id:string
+    . id
+    . autoincrement
+
+enum UserKind
+ - Admin
+ - Normal

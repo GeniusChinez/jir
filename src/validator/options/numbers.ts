@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { NumberValueSchema } from "../number-value";
+import { NumberValueSchema, NumberVariantSchema } from "../number-value";
+import { BooleanSchema } from "../boolean.schema";
 
 export const NumberTransformationOptionsSchema = z.object({
   plus: z.optional(z.number().or(z.bigint())),
   minus: z.optional(z.number().or(z.bigint())),
-  abs: z.boolean(),
+  abs: z.boolean().optional(),
 });
 
 export type NumberTransformationOptions = z.infer<
@@ -28,11 +29,12 @@ export const NumberValidationOptionsSchema = z.object({
   notIn: NumberValueSchema.array().optional(),
   divides: NumberValueSchema.array().optional(),
   divisors: NumberValueSchema.array().optional(),
-  id: z.boolean().optional(),
-  even: z.boolean().optional(),
-  odd: z.boolean().optional(),
+  id: BooleanSchema.optional(),
+  even: BooleanSchema.optional(),
+  odd: BooleanSchema.optional(),
   max: NumberValueSchema.optional(),
   min: NumberValueSchema.optional(),
+  variant: NumberVariantSchema.optional().default("int"),
 });
 
 export type NumberValidationOptions = z.infer<

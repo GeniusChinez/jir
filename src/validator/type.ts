@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HashingAlgorithmSchema } from "src/helpers/hashing.algorithms";
+import { HashingAlgorithmSchema } from "../helpers/hashing.algorithms";
 import { isAlnum, isAlpha, isDigit, isSpace } from "./chars";
-import { EncryptionAlgorithmSchema } from "src/helpers/encryption.algorithms";
+import { EncryptionAlgorithmSchema } from "../helpers/encryption.algorithms";
 import { DateTimeSchema } from "./date.schema";
+import { visibilities } from "./visibility";
 
 export function createDefaultArrayType(baseType: any, depth: number): any {
   if (depth === 0) {
@@ -201,9 +202,12 @@ export function parseFieldType(
   }
 
   const levels: Record<string, any>[] = new Array(arrayDepth + 1).fill({});
-  let levelIndex = 0;
 
-  const parseAttribute = () => {
+  const parseAttribute = (out: Record<string, any>, levelIndex = 0) => {
+    const recordNamed = (name: string, value: any) => {
+      out[name] = value;
+    };
+
     // First, we expect an attribute name
     let attributeName = "";
     while (moreFood() && isAlnum(taste())) {
@@ -213,6 +217,10 @@ export function parseFieldType(
     if (!attributeName.length) {
       throw new Error(`In '${fieldName}', found unnamed attribute in the type`);
     }
+
+    const record = (value: any) => {
+      recordNamed(attributeName, value);
+    };
 
     // We dont care about the space after the attribute name
     swallowAir();
@@ -228,24 +236,26 @@ export function parseFieldType(
         case "empty": {
           if (moreFood() && taste() === "(") {
             getNextEdible();
-            levels[levelIndex][attributeName] = swallowBoolean(
-              `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+            record(
+              swallowBoolean(
+                `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+              ),
             );
             expect(
               ")",
               `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
             );
           } else {
-            levels[levelIndex][attributeName] = true;
+            record(true);
           }
           break;
         }
         case "some":
         case "every":
         case "none": {
-          levelIndex++;
+          const childAttributes: Record<string, any> = {};
           while (true) {
-            parseAttribute();
+            parseAttribute(childAttributes, levelIndex + 1);
             swallowAir();
 
             if (tastesLike(",")) {
@@ -259,7 +269,16 @@ export function parseFieldType(
 
             break;
           }
-          levelIndex--;
+          levels[levelIndex] = {
+            [attributeName]: childAttributes,
+          };
+          break;
+        }
+        case "max":
+        case "min": {
+          swallowAir();
+          record(swallowNumber(`Expected a number after '@${attributeName}('`));
+          swallowAir();
           break;
         }
         default: {
@@ -274,403 +293,402 @@ export function parseFieldType(
         `In '${fieldName}', expected closing ')' for attribute '@${attributeName}'`,
       );
     } else {
-      switch (nameOfType) {
-        case "number": {
-          if (numberBooleanFlags.includes(attributeName)) {
-            if (moreFood() && taste() === "(") {
-              getNextEdible();
-              levels[levelIndex][attributeName] = swallowBoolean(
-                `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
-              );
-              expect(
-                ")",
-                `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
-              );
-            } else {
-              levels[levelIndex][attributeName] = true;
+      if (visibilities.includes(attributeName as any)) {
+        recordNamed("visibility", attributeName);
+      } else if (["unique", "optional"].includes(attributeName)) {
+        record(true);
+      } else if (attributeName === "map") {
+        expect(
+          "(",
+          `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+        );
+        swallowAir();
+        record(
+          swallowString(
+            `Expected a string (with single quotes) after '@${attributeName}('`,
+          ),
+        );
+        swallowAir();
+        expect(
+          ")",
+          `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+        );
+      } else {
+        switch (nameOfType) {
+          case "number": {
+            if (numberBooleanFlags.includes(attributeName)) {
+              if (moreFood() && taste() === "(") {
+                getNextEdible();
+                record(
+                  swallowBoolean(
+                    `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+                  ),
+                );
+                expect(
+                  ")",
+                  `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
+                );
+              } else {
+                record(true);
+              }
+              break;
+            }
+
+            switch (attributeName) {
+              case "bigint":
+              case "int":
+              case "decimal":
+              case "float": {
+                recordNamed("variant", attributeName);
+                break;
+              }
+              case "max":
+              case "min":
+              case "default":
+              case "mod":
+              case "gt":
+              case "gte":
+              case "lt":
+              case "lte":
+              case "eq":
+              case "neq":
+              case "plus":
+              case "minus": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowNumber(`Expected a number after '@${attributeName}('`),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "divides":
+              case "divisor":
+              case "in":
+              case "notIn": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  expectMultipleNumbers(
+                    `Expected one or more numbers after '@${attributeName}('`,
+                  ),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              default: {
+                throw new Error(
+                  `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
+                );
+              }
             }
             break;
           }
+          case "string": {
+            if (stringBooleanFlags.includes(attributeName)) {
+              if (moreFood() && taste() === "(") {
+                getNextEdible();
+                record(
+                  swallowBoolean(
+                    `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+                  ),
+                );
+                expect(
+                  ")",
+                  `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
+                );
+              } else {
+                record(true);
+              }
+              break;
+            }
 
-          switch (attributeName) {
-            case "max":
-            case "min":
-            case "default":
-            case "mod":
-            case "gt":
-            case "gte":
-            case "lt":
-            case "lte":
-            case "eq":
-            case "neq":
-            case "plus":
-            case "minus": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowNumber(
-                `Expected a number after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "divides":
-            case "divisor":
-            case "in":
-            case "notIn": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = expectMultipleNumbers(
-                `Expected one or more numbers after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "map": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            default: {
-              throw new Error(
-                `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
-              );
-            }
-          }
-          break;
-        }
-        case "string": {
-          if (stringBooleanFlags.includes(attributeName)) {
-            if (moreFood() && taste() === "(") {
-              getNextEdible();
-              levels[levelIndex][attributeName] = swallowBoolean(
-                `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
-              );
-              expect(
-                ")",
-                `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
-              );
-            } else {
-              levels[levelIndex][attributeName] = true;
+            switch (attributeName) {
+              case "max":
+              case "min": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowNumber(`Expected a number after '@${attributeName}('`),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "default":
+              case "eq":
+              case "neq":
+              case "regex":
+              case "endsWith":
+              case "startsWith": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowString(`Expected a string after '@${attributeName}('`),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "excludes":
+              case "includes": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowMultipleStrings(
+                    `Expected a list of strings after '@${attributeName}('`,
+                  ),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "in":
+              case "notIn": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowMultipleStrings(
+                    `Expected a list of strings after '@${attributeName}('`,
+                  ),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "hash": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const name = swallowString(
+                  `Expected a string (with single quotes) after '@${attributeName}('`,
+                );
+                const algorithm = HashingAlgorithmSchema.safeParse(name);
+                if (!algorithm.success) {
+                  throw new Error(
+                    `In '${fieldName}' attribute '@${attributeName}', unknown hashing algorithm '${name}'`,
+                  );
+                }
+
+                record(algorithm.data);
+                swallowAir();
+
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "encrypt": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const name = swallowString(
+                  `Expected a string (with single quotes) after '@${attributeName}('`,
+                );
+                const algorithm = EncryptionAlgorithmSchema.safeParse(name);
+                if (!algorithm.success) {
+                  throw new Error(
+                    `In '${fieldName}' attribute '@${attributeName}', unknown encryption algorithm '${name}'`,
+                  );
+                }
+                record(algorithm.data);
+                swallowAir();
+
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              default: {
+                throw new Error(
+                  `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
+                );
+              }
             }
             break;
           }
+          case "boolean": {
+            if (booleanBooleanFlags.includes(attributeName)) {
+              if (moreFood() && taste() === "(") {
+                getNextEdible();
+                record(
+                  swallowBoolean(
+                    `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+                  ),
+                );
+                expect(
+                  ")",
+                  `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
+                );
+              } else {
+                record(true);
+              }
+              break;
+            }
 
-          switch (attributeName) {
-            case "max":
-            case "min": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowNumber(
-                `Expected a number after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "default":
-            case "eq":
-            case "neq": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowString(
-                `Expected a string after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "in":
-            case "notIn": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowMultipleStrings(
-                `Expected a list of strings after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "hash": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-
-              const name = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              const algorithm = HashingAlgorithmSchema.safeParse(name);
-              if (!algorithm.success) {
+            switch (attributeName) {
+              case "default": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                record(
+                  swallowBoolean(
+                    `Expected a boolean (true or false) after '@${attributeName}('`,
+                  ),
+                );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              default: {
                 throw new Error(
-                  `In '${fieldName}' attribute '@${attributeName}', unknown hashing algorithm '${name}'`,
+                  `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
                 );
               }
-
-              levels[levelIndex][attributeName] = algorithm.data;
-
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "encrypt": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-
-              const name = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              const algorithm = EncryptionAlgorithmSchema.safeParse(name);
-              if (!algorithm.success) {
-                throw new Error(
-                  `In '${fieldName}' attribute '@${attributeName}', unknown encryption algorithm '${name}'`,
-                );
-              }
-              levels[levelIndex][attributeName] = algorithm.data;
-
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "regex":
-            case "map": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            default: {
-              throw new Error(
-                `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
-              );
-            }
-          }
-          break;
-        }
-        case "boolean": {
-          if (booleanBooleanFlags.includes(attributeName)) {
-            if (moreFood() && taste() === "(") {
-              getNextEdible();
-              levels[levelIndex][attributeName] = swallowBoolean(
-                `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
-              );
-              expect(
-                ")",
-                `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
-              );
-            } else {
-              levels[levelIndex][attributeName] = true;
             }
             break;
           }
+          case "date": {
+            if (dateBooleanFlags.includes(attributeName)) {
+              if (moreFood() && taste() === "(") {
+                getNextEdible();
+                record(
+                  swallowBoolean(
+                    `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
+                  ),
+                );
+                expect(
+                  ")",
+                  `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
+                );
+              } else {
+                record(true);
+              }
+              break;
+            }
 
-          switch (attributeName) {
-            case "default": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowBoolean(
-                `Expected a boolean (true or false) after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "map": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            default: {
-              throw new Error(
-                `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
-              );
-            }
-          }
-          break;
-        }
-        case "date": {
-          if (dateBooleanFlags.includes(attributeName)) {
-            if (moreFood() && taste() === "(") {
-              getNextEdible();
-              levels[levelIndex][attributeName] = swallowBoolean(
-                `In '${fieldName}', for attribute '@${attributeName}', expected true or false after '('`,
-              );
-              expect(
-                ")",
-                `In '${fieldName}', for attribute '@${attributeName}', expected closing ')'`,
-              );
-            } else {
-              levels[levelIndex][attributeName] = true;
+            switch (attributeName) {
+              case "default":
+              case "lt":
+              case "lte":
+              case "gt":
+              case "gte":
+              case "eq":
+              case "neq": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const date = swallowString(
+                  `Expected a date in single quotes after '@${attributeName}('`,
+                );
+                try {
+                  record(DateTimeSchema.parse(date));
+                } catch (e) {
+                  throw new Error(
+                    `Expected a valid date in single quotes after '@${attributeName}(', but found '${date}'`,
+                  );
+                }
+
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "in":
+              case "notIn": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const dates = swallowMultipleStrings(
+                  `Expected a list of dates in single quotes after '@${attributeName}('`,
+                );
+                try {
+                  record(DateTimeSchema.array().parse(dates));
+                } catch (e) {
+                  throw new Error(
+                    `Expected valid dates in single quotes after '@${attributeName}(', but found '${dates}'`,
+                  );
+                }
+
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              default: {
+                throw new Error(
+                  `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
+                );
+              }
             }
             break;
           }
-
-          switch (attributeName) {
-            case "default":
-            case "lt":
-            case "lte":
-            case "gt":
-            case "gte":
-            case "eq":
-            case "neq": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-
-              const date = swallowString(
-                `Expected a date in single quotes after '@${attributeName}('`,
-              );
-              try {
-                levels[levelIndex][attributeName] = DateTimeSchema.parse(date);
-              } catch (e) {
-                throw new Error(
-                  `Expected a valid date in single quotes after '@${attributeName}(', but found '${date}'`,
-                );
-              }
-
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "in":
-            case "notIn": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-
-              const dates = swallowMultipleStrings(
-                `Expected a list of dates in single quotes after '@${attributeName}('`,
-              );
-              try {
-                levels[levelIndex][attributeName] =
-                  DateTimeSchema.array().parse(dates);
-              } catch (e) {
-                throw new Error(
-                  `Expected valid dates in single quotes after '@${attributeName}(', but found '${dates}'`,
-                );
-              }
-
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            case "map": {
-              expect(
-                "(",
-                `In '${fieldName}' attribute '@${attributeName}', expected '('`,
-              );
-              swallowAir();
-              levels[levelIndex][attributeName] = swallowString(
-                `Expected a string (with single quotes) after '@${attributeName}('`,
-              );
-              swallowAir();
-              expect(
-                ")",
-                `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
-              );
-              break;
-            }
-            default: {
-              throw new Error(
-                `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
-              );
-            }
+          default: {
+            throw new Error(
+              `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
+            );
           }
-          break;
-        }
-        default: {
-          throw new Error(
-            `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
-          );
         }
       }
     }
@@ -685,11 +703,11 @@ export function parseFieldType(
         `In '${fieldName}', found unexpected stuff '${char}${source.slice(index, index + 10)}...' in the type`,
       );
     }
-    parseAttribute();
+    parseAttribute(levels[0]);
   } while (moreFood());
 
   const reapType = (ls: Record<string, any>[]): any => {
-    if (ls.length === 0) {
+    if (ls.length === 1) {
       return {
         ...ls[0],
         type: nameOfType,
@@ -708,9 +726,6 @@ export function parseFieldType(
 
 export const numberBooleanFlags = [
   "id",
-  "unique",
-  "public",
-  "private",
   "even",
   "odd",
   "negative",
@@ -720,7 +735,6 @@ export const numberBooleanFlags = [
   "nonzero",
   "abs",
   "autoincrement",
-  "optional",
 ];
 
 export const stringBooleanFlags = [
@@ -728,9 +742,6 @@ export const stringBooleanFlags = [
   "long",
   "medium",
   "short",
-  "unique",
-  "public",
-  "private",
   "lowercase",
   "uppercase",
   "kebabcase",
@@ -759,17 +770,10 @@ export const stringBooleanFlags = [
   "date",
   "secret",
   "password",
-  "optional",
 ];
 
 export const listBooleanFlags = ["empty", "nonempty"] as string[];
 
-export const booleanBooleanFlags = ["true", "false", "optional"] as string[];
+export const booleanBooleanFlags = ["true", "false"] as string[];
 
-export const dateBooleanFlags = [
-  "future",
-  "past",
-  "updatedAt",
-  "createdAt",
-  "optional",
-];
+export const dateBooleanFlags = ["future", "past", "updatedAt", "createdAt"];

@@ -1,23 +1,9 @@
 [
   {
     "name": "User",
-    "type": "entity",
+    "type": "object",
     "properties": {
-      "name": "string[][][]"
-    }
-  },
-  {
-    "name": "Item",
-    "type": "entity",
-    "properties": {
-      "creatorId": {
-        "type": "string",
-        "references": {
-          "entity": "User",
-          "field": "id",
-          "onDelete": "Cascade"
-        }
-      }
+      "num": "number[][] @some(every(nonzero, divides(1000)))"
     }
   }
 ]
