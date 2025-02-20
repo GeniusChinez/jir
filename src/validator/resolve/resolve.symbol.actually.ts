@@ -1,13 +1,13 @@
 import { ValidationContext } from "../context";
 import { resolveName } from "./resolve.name";
 import { resolveDateTimeSymbol } from "./resolve.symbol.date";
-// import { resolveEntitySymbol } from "./resolve.symbol.entity";
 import { resolveEnumSymbol } from "./resolve.symbol.enum";
 import { resolveListSymbol } from "./resolve.symbol.list";
 import { resolveNumberSymbol } from "./resolve.symbol.number";
 import { resolveObjectSymbol } from "./resolve.symbol.object";
 import { resolveTextSymbol } from "./resolve.symbol.text";
 import { Symbol, SymbolKind, SymbolSchema } from "../symbols";
+import { resolveEntitySymbol } from "./resolve.symbol.entity";
 
 export function actuallyResolveSymbol(
   _symbol: Symbol,
@@ -41,9 +41,9 @@ export function actuallyResolveSymbol(
       }
       return resolveListSymbol(symbol, context);
     }
-    // case SymbolKind.Entity: {
-    //   return resolveEntitySymbol(symbol, context);
-    // }
+    case SymbolKind.Entity: {
+      return resolveEntitySymbol(symbol, context);
+    }
     case SymbolKind.Enum: {
       return resolveEnumSymbol(symbol, context);
     }

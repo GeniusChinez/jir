@@ -117,7 +117,11 @@ export function resolveObjectSymbol(
             );
           }
 
-          if (![SymbolKind.Entity, SymbolKind.Object].includes(parent.type)) {
+          if (
+            ![SymbolKind.Entity, SymbolKind.Object].includes(
+              parent.type as SymbolKind,
+            )
+          ) {
             throw new Error(
               `'${symbol.name}' cannot extend a non-entity/object type '${proposedParent}'`,
             );

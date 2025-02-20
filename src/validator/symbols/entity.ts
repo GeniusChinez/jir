@@ -3,9 +3,10 @@ import { SymbolKindSchema, SymbolSchema, SymbolStatusSchema } from ".";
 import { BooleanSchema } from "../boolean.schema";
 import { EntityOperationsSchema } from "../entity.operations";
 import { ReferenceSchema } from "../reference.schema";
-import { SortOrderSchema } from "src/schemas/sort";
+import { SortOrderSchema } from "../../schemas/sort";
 
 export const RawEntityUniqueKeySchema = z.object({
+  fields: z.string().array(),
   name: z.string().optional(),
   map: z.string().optional(),
   length: z.number().nonnegative().optional(),
@@ -24,21 +25,22 @@ export const EntityPropertySchema = z.object({
   name: z.string(),
   type: SymbolKindSchema,
   status: SymbolStatusSchema,
-  required: BooleanSchema,
-  relations: ReferenceSchema.optional(),
+  optional: BooleanSchema.optional(),
+  reference: ReferenceSchema.optional(),
 });
 
 export const RawEntitySymbolSchema = z.object({
   properties: z.record(z.string(), EntityPropertySchema),
-  permissions: z.record(z.string(), z.string().array()),
+  permissions: z.record(z.string(), z.string().array()).optional(),
   abstract: BooleanSchema.optional(),
-  operations: EntityOperationsSchema,
+  operations: EntityOperationsSchema.optional(),
   final: BooleanSchema.optional(),
   ignore: BooleanSchema.optional(),
   compositeKey: z.string().array().optional(),
   schema: z.string().optional(),
   uniqueKey: EntityUniqueKeySchema.optional(),
   index: EntityIndexSchema.optional(),
+  extends: z.string().or(z.string().array()).optional(),
 });
 
 export const EntitySymbolSchema = SymbolSchema.merge(RawEntitySymbolSchema);

@@ -1,40 +1,20 @@
 [
   {
-    "name": "User",
-    "type": "object",
+    "name": "Person",
+    "type": "entity",
     "properties": {
-      "txt": "string @mask('X') @truncate(10)",
-      "txt2": "[string] @every(mask('X'), truncate(10))",
-      "country": "string @country('Africa')",
-      "region": "string @region('US')",
-      "state": "string @state('ZA')",
-      "province": "string @province('ZW')",
-      "ssn": "string @ssn",
-      "europeanArticleNumber": "string @ean",
-      "universalProductCode": "string @upc",
-      "vehicleIdentificationNumber": "string @vin",
-      "mime": "string @mimeType",
-      "mime2": "string @mimeType('image')",
-      "validHtml": "string @html",
-      "validJson": "string @json",
-      "chessMove": "string @chessMove",
-      "chessPGN": "string @pgn",
-      "chessPositionNotation": "string @fen",
-      "passport": "string @passportNumber('US')",
-      "nationalId": "string @nationalIdNumber('ZW')",
-      "phoneNumber": "string @phoneNumber('ZW')",
-      "phoneNumber2": "string @phoneNumber",
-      "isbn": "string @isbn",
-      "isbn10": "string @isbn('10')",
-      "isbn13": "string @isbn('13')",
-      "gtin": "string @gtin",
-      "creditCardNumber": "string @creditCardNumber",
-      "internationalBankAccountNumber": "string @iban",
-      "colors": "string @color('hex') @leftJoin('user_')",
-      "padding": "string @padLeft(10, '0')",
-      "maskingOccurances": "string @maskOccurances('90' ,   'c')",
-      "sub": "string @substring(1, 0b1000)",
-      "arrays": "[[string]] @every(length(3), some(hash, length(4)))"
+      "name": "string @nonempty"
     }
+  },
+  {
+    "name": "User",
+    "type": "entity",
+    "extends": "Person",
+    "properties": {
+      "kind": "string @in('Admin', 'Normal')"
+    },
+    "+operations": [
+      "kill"
+    ]
   }
 ]

@@ -32,7 +32,7 @@ export enum SymbolKind {
   List = "List",
 }
 
-export const SymbolKindSchema = z.nativeEnum(SymbolKind);
+export const SymbolKindSchema = z.nativeEnum(SymbolKind).or(z.string());
 
 export const SymbolSchema = z.object({
   name: z.string(),
@@ -49,5 +49,3 @@ export const SymbolSchema = z.object({
 });
 
 export type Symbol = z.infer<typeof SymbolSchema>;
-
-// NOTE: WE HIT A BRICK WALL!!!! We have to have separate schemas for the symbol and for the raw thing to be parsed.

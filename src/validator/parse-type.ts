@@ -70,10 +70,15 @@ export function parseTypeWithContext(
   }
 
   ctx.swallowAir();
-  const attributes = parseTypeAttributes(nameOfType, ctx);
+  if (ctx.tastesLike("@")) {
+    const attributes = parseTypeAttributes(nameOfType, ctx);
+    return {
+      ...attributes,
+      type: nameOfType,
+    };
+  }
 
   return {
-    ...attributes,
     type: nameOfType,
   };
 }

@@ -23,7 +23,7 @@ export function resolveEnumSymbol(
         );
       }
 
-      if (![SymbolKind.Enum].includes(parent.type)) {
+      if (![SymbolKind.Enum].includes(parent.type as SymbolKind)) {
         throw new Error(
           `'${symbol.name}' cannot extend a non-enum type '${proposedParent}'`,
         );
