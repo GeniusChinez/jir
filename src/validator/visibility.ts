@@ -7,6 +7,7 @@ export const visibilities = [
   "admin",
   "system",
   "inherit",
+  "creator",
 ] as const;
 
 export const VisibilitySchema = z.enum(visibilities);

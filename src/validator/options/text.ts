@@ -18,8 +18,8 @@ export const TextTranformationOptionsSchema = z.object({
   secret: BooleanSchema.optional(),
   slugify: BooleanSchema.optional(),
   trim: BooleanSchema.optional(),
-  encrypt: EncryptionAlgorithmSchema.optional(),
-  hash: HashingAlgorithmSchema.optional(),
+  encrypt: BooleanSchema.or(EncryptionAlgorithmSchema).optional(),
+  hash: BooleanSchema.or(HashingAlgorithmSchema).optional(),
   password: BooleanSchema.optional(),
   reverse: BooleanSchema.optional(),
   capitalize: BooleanSchema.optional(),
@@ -259,11 +259,14 @@ export const TextValidationOptionsSchema = z.object({
 
   twitterHandle: BooleanSchema.optional(),
   color: z
-    .object({
-      type: z.enum(["hex", "rgb", "rgba", "hsl", "hsla"]),
-      exclude: z.string().array().optional(),
-      include: z.string().array().optional(),
-    })
+    .enum(["hex", "rgb", "rgba", "hsl", "hsla"])
+    .or(
+      z.object({
+        type: z.enum(["hex", "rgb", "rgba", "hsl", "hsla"]),
+        exclude: z.string().array().optional(),
+        include: z.string().array().optional(),
+      }),
+    )
     .optional(),
 });
 

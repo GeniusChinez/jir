@@ -6,6 +6,7 @@ export const RawListSymbolSchema = z.object({
   of: SymbolSchema,
   nonempty: BooleanSchema.optional(),
   empty: BooleanSchema.optional(),
+  length: z.number().nonnegative().optional(),
   min: z.number().nonnegative().optional(),
   max: z.number().nonnegative().optional(),
   some: z.record(z.string(), z.any()).optional(),

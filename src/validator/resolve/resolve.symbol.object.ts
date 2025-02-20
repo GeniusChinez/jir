@@ -5,7 +5,7 @@ import { resolveName } from "./resolve.name";
 import { Symbol, SymbolKind, SymbolStatus } from "../symbols";
 import { ObjectSymbol, RawObjectSymbolSchema } from "../symbols/object";
 import { isAlnum, isAlpha } from "../chars";
-import { parseFieldType } from "../type";
+import { parseFieldType } from "../parse-type";
 import { parseTypeFromSource } from "../source-types";
 import { resolveSymbol } from "./resolve.symbol";
 import { resolveSymbolFromSchema } from "./resolve.symbol.from-schema";
@@ -76,8 +76,6 @@ export function resolveObjectSymbol(
         `type '${property.type}' not allowed for '${displayName}'`,
       );
     }
-
-    console.log("Expanded", expandedProperty);
 
     const propertyAsSymbol: Symbol = {
       name: displayName,

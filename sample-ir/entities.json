@@ -4,7 +4,7 @@
     "type": "object",
     "properties": {
       "txt": "string @mask('X') @truncate(10)",
-      "num": "number[][] @some(every(nonzero, divides(1000)))",
+      "txt2": "[string] @every(mask('X'), truncate(10))",
       "country": "string @country('Africa')",
       "region": "string @region('US')",
       "state": "string @state('ZA')",
@@ -33,7 +33,8 @@
       "colors": "string @color('hex') @leftJoin('user_')",
       "padding": "string @padLeft(10, '0')",
       "maskingOccurances": "string @maskOccurances('90' ,   'c')",
-      "sub": "string @substring(1, 0b1000)"
+      "sub": "string @substring(1, 0b1000)",
+      "arrays": "[[string]] @every(length(3), some(hash, length(4)))"
     }
   }
 ]
