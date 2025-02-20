@@ -12,9 +12,6 @@
     "extends": "Person",
     "properties": {
       "kind": "string @in('Admin', 'Normal')"
-    },
-    "+operations": [
-      "kill"
-    ]
+    }
   }
 ]

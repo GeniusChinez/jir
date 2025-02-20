@@ -10,11 +10,13 @@ export function resolveSymbolFromSchema<Schema extends ZodSchema>(
     success,
     error: symbolError,
   } = schema.safeParse(symbol.raw);
+
   if (!success) {
     throw new Error(
       `Failed to parse '${symbol.name}'. Reason: ${symbolError.message}`,
     );
   }
+
   return {
     ...symbol,
     ...rawSymbol,

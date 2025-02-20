@@ -138,6 +138,8 @@ export function resolveEntitySymbol(
     context,
   );
 
+  console.log(raw);
+
   if ("+operations" in raw) {
     const { data: operations, success } = EntityOperationsSchema.safeParse(
       raw["+operations"],
@@ -145,7 +147,7 @@ export function resolveEntitySymbol(
     if (!success) {
       throw new Error(`Invalid operations spec '${symbol.name}.operations'`);
     }
-    symbol.operations = [
+    entity.operations = [
       ...new Set([...(symbol.operations || []), ...operations]),
     ];
   }
@@ -157,7 +159,7 @@ export function resolveEntitySymbol(
     if (!success) {
       throw new Error(`Invalid operations spec '${symbol.name}.operations'`);
     }
-    symbol.operations = (symbol.operations || []).filter(
+    entity.operations = (symbol.operations || []).filter(
       (one) => !operations.includes(one as any),
     );
   }

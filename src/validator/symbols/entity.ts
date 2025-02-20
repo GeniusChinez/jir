@@ -33,7 +33,7 @@ export const RawEntitySymbolSchema = z.object({
   properties: z.record(z.string(), EntityPropertySchema),
   permissions: z.record(z.string(), z.string().array()).optional(),
   abstract: BooleanSchema.optional(),
-  operations: EntityOperationsSchema.optional(),
+  operations: EntityOperationsSchema.default("*"),
   final: BooleanSchema.optional(),
   ignore: BooleanSchema.optional(),
   compositeKey: z.string().array().optional(),
