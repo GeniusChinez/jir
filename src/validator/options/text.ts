@@ -25,20 +25,18 @@ export const TextTranformationOptionsSchema = z.object({
   capitalize: BooleanSchema.optional(),
   truncate: z.number().int().nonnegative().optional(),
   mask: z.string().length(1).optional(),
-
-  // UNIMPLEMENTED!!!
+  titlecase: BooleanSchema.optional(),
+  leftJoin: z.string().optional(),
+  rightJoin: z.string().optional(),
+  padRight: z
+    .tuple([z.number().nonnegative(), z.string().length(1)])
+    .optional(),
+  padLeft: z.tuple([z.number().nonnegative(), z.string().length(1)]).optional(),
   substring: z
     .number()
     .nonnegative()
     .or(z.tuple([z.number().int().nonnegative(), z.number().int()]))
     .optional(),
-  leftJoin: z.string().optional(),
-  rightJoin: z.string().optional(),
-  titlecase: BooleanSchema.optional(),
-  padRight: z
-    .tuple([z.number().nonnegative(), z.string().length(1)])
-    .optional(),
-  padLeft: z.tuple([z.number().nonnegative(), z.string().length(1)]).optional(),
   maskOccurances: z.tuple([z.string().min(1), z.string().min(1)]).optional(),
 });
 
@@ -80,8 +78,6 @@ export const TextValidationOptionsSchema = z.object({
   long: BooleanSchema.optional(),
   medium: BooleanSchema.optional(),
   short: BooleanSchema.optional(),
-
-  // UNIMPLEMENTED!!!
   ean: BooleanSchema.or(
     z.object({
       exclude: z.string().array().optional(),
@@ -215,7 +211,6 @@ export const TextValidationOptionsSchema = z.object({
       include: z.string().array().optional(),
     }),
   ).optional(),
-  twitterHandle: BooleanSchema.optional(),
   ssn: BooleanSchema.or(
     z.object({
       exclude: z.string().array().optional(),
@@ -261,6 +256,8 @@ export const TextValidationOptionsSchema = z.object({
       include: z.string().array().optional(),
     })
     .optional(),
+
+  twitterHandle: BooleanSchema.optional(),
   color: z
     .object({
       type: z.enum(["hex", "rgb", "rgba", "hsl", "hsla"]),

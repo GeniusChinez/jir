@@ -29,7 +29,11 @@
       "isbn13": "string @isbn('13')",
       "gtin": "string @gtin",
       "creditCardNumber": "string @creditCardNumber",
-      "internationalBankAccountNumber": "string @iban"
+      "internationalBankAccountNumber": "string @iban",
+      "colors": "string @color('hex') @leftJoin('user_')",
+      "padding": "string @padLeft(10, '0')",
+      "sub": "string @substring(1, 10)",
+      "maskingOccurances": "string @maskOccurances('90' ,   'c')"
     }
   }
 ]

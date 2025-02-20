@@ -446,7 +446,9 @@ export function parseFieldType(
               case "regex":
               case "endsWith":
               case "startsWith":
-              case "mask": {
+              case "mask":
+              case "leftJoin":
+              case "rightJoin": {
                 expect(
                   "(",
                   `In '${fieldName}' attribute '@${attributeName}', expected '('`,
@@ -455,6 +457,91 @@ export function parseFieldType(
                 record(
                   swallowString(`Expected a string after '@${attributeName}('`),
                 );
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "padRight":
+              case "padLeft": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                const amount = swallowNumber(
+                  `Expected a number after '@${attributeName}('`,
+                );
+                swallowAir();
+                expect(
+                  ",",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ','`,
+                );
+                swallowAir();
+                const chars = swallowString(
+                  `Expected a string after '@${attributeName}('`,
+                );
+                record([amount, chars]);
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "substring": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+                const startingPoint = swallowNumber(
+                  `Expected a number after '@${attributeName}('`,
+                );
+                swallowAir();
+                if (tastesLike(",")) {
+                  getNextEdible();
+                  swallowAir();
+                  const endingPoint = swallowNumber(
+                    `Expected a number after '@${attributeName}('`,
+                  );
+                  record([startingPoint, endingPoint]);
+                } else {
+                  record(startingPoint);
+                }
+
+                swallowAir();
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "maskOccurances": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+
+                swallowAir();
+                const _of = swallowString(
+                  `Expected a string after '@${attributeName}('`,
+                );
+                swallowAir();
+
+                if (tastesLike(",")) {
+                  getNextEdible();
+                  swallowAir();
+                  const _with = swallowString(
+                    `Expected a string after ',' in '@${attributeName}'`,
+                  );
+                  record([_of, _with]);
+                } else {
+                  record([_of, "*"]);
+                }
+
                 swallowAir();
                 expect(
                   ")",
@@ -751,6 +838,32 @@ export function parseFieldType(
                 );
                 break;
               }
+              case "color": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const raw = swallowString(
+                  `Expected a color type in single quotes after '@${attributeName}('`,
+                );
+                if (!["hex", "rgb", "rgba", "hsl", "hsla"].includes(raw)) {
+                  throw new Error(
+                    `Found unknown color type '${raw}' in '${fieldName}'`,
+                  );
+                }
+                const res = {
+                  type: raw,
+                };
+
+                record(res);
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
               default: {
                 throw new Error(
                   `In '${fieldName}', found impermissible attribute '@${attributeName}'`,
@@ -953,6 +1066,7 @@ export const stringBooleanFlags = [
   "kebabcase",
   "capitalize",
   "screamingcase",
+  "titlecase",
   "camelcase",
   "pascalcase",
   "nospecial",
@@ -993,6 +1107,7 @@ export const stringBooleanFlags = [
   "fen",
   "iban",
   "creditCardNumber",
+  "twitterHandle",
 ];
 
 export const listBooleanFlags = ["empty", "nonempty"] as string[];
