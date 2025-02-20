@@ -3,7 +3,33 @@
     "name": "User",
     "type": "object",
     "properties": {
-      "num": "number[][] @some(every(nonzero, divides(1000)))"
+      "txt": "string @mask('X') @truncate(10)",
+      "num": "number[][] @some(every(nonzero, divides(1000)))",
+      "country": "string @country('Africa')",
+      "region": "string @region('US')",
+      "state": "string @state('ZA')",
+      "province": "string @province('ZW')",
+      "ssn": "string @ssn",
+      "europeanArticleNumber": "string @ean",
+      "universalProductCode": "string @upc",
+      "vehicleIdentificationNumber": "string @vin",
+      "mime": "string @mimeType",
+      "mime2": "string @mimeType('image')",
+      "validHtml": "string @html",
+      "validJson": "string @json",
+      "chessMove": "string @chessMove",
+      "chessPGN": "string @pgn",
+      "chessPositionNotation": "string @fen",
+      "passport": "string @passportNumber('US')",
+      "nationalId": "string @nationalIdNumber('ZW')",
+      "phoneNumber": "string @phoneNumber('ZW')",
+      "phoneNumber2": "string @phoneNumber",
+      "isbn": "string @isbn",
+      "isbn10": "string @isbn('10')",
+      "isbn13": "string @isbn('13')",
+      "gtin": "string @gtin",
+      "creditCardNumber": "string @creditCardNumber",
+      "internationalBankAccountNumber": "string @iban"
     }
   }
 ]

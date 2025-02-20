@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HashingAlgorithmSchema } from "../helpers/hashing.algorithms";
+import { HashingAlgorithmSchema } from "../schemas/hashing.algorithms";
 import { isAlnum, isAlpha, isDigit, isSpace } from "./chars";
-import { EncryptionAlgorithmSchema } from "../helpers/encryption.algorithms";
+import { EncryptionAlgorithmSchema } from "../schemas/encryption.algorithms";
 import { DateTimeSchema } from "./date.schema";
 import { visibilities } from "./visibility";
+import { CountryCodeSchema } from "../schemas/countries";
+import { ContinentSchema } from "../schemas/continents";
+import { eanVersions } from "../schemas/ean";
 
 export function createDefaultArrayType(baseType: any, depth: number): any {
   if (depth === 0) {
@@ -419,7 +422,9 @@ export function parseFieldType(
 
             switch (attributeName) {
               case "max":
-              case "min": {
+              case "min":
+              case "length":
+              case "truncate": {
                 expect(
                   "(",
                   `In '${fieldName}' attribute '@${attributeName}', expected '('`,
@@ -440,7 +445,8 @@ export function parseFieldType(
               case "neq":
               case "regex":
               case "endsWith":
-              case "startsWith": {
+              case "startsWith":
+              case "mask": {
                 expect(
                   "(",
                   `In '${fieldName}' attribute '@${attributeName}', expected '('`,
@@ -539,6 +545,206 @@ export function parseFieldType(
                 record(algorithm.data);
                 swallowAir();
 
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "country": {
+                if (tastesLike("(")) {
+                  getNextEdible();
+                  const rawContinent = swallowString(
+                    `Expected a continent in single quotes after '@${attributeName}('`,
+                  );
+                  const { data: continent, success } =
+                    ContinentSchema.safeParse(rawContinent);
+                  if (!success) {
+                    throw new Error(
+                      `Found unknown continent '${rawContinent}' in '${fieldName}'`,
+                    );
+                  }
+                  const countryResult = {
+                    continent,
+                  };
+
+                  record(countryResult);
+                  expect(
+                    ")",
+                    `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                  );
+                } else {
+                  record(true);
+                }
+                break;
+              }
+              case "isbn": {
+                if (tastesLike("(")) {
+                  getNextEdible();
+                  const version = swallowString(
+                    `Expected a version in single quotes after '@${attributeName}('`,
+                  );
+                  if (!["13", "10"].includes(version)) {
+                    throw new Error(
+                      `Found unknown isbn version '${version}' in '${fieldName}'`,
+                    );
+                  }
+                  const res = {
+                    version,
+                  };
+                  record(res);
+                  expect(
+                    ")",
+                    `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                  );
+                } else {
+                  record(true);
+                }
+                break;
+              }
+              case "ean": {
+                if (tastesLike("(")) {
+                  getNextEdible();
+                  const version = swallowString(
+                    `Expected a version in single quotes after '@${attributeName}('`,
+                  );
+                  if (!eanVersions.includes(version as any)) {
+                    throw new Error(
+                      `Found unknown ean version '${version}' in '${fieldName}'`,
+                    );
+                  }
+                  const res = {
+                    version,
+                  };
+                  record(res);
+                  expect(
+                    ")",
+                    `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                  );
+                } else {
+                  record(true);
+                }
+                break;
+              }
+              case "mimeType": {
+                if (tastesLike("(")) {
+                  getNextEdible();
+
+                  const raw = swallowString(
+                    `Expected a mimeType kind in single quotes after '@${attributeName}('`,
+                  );
+                  if (
+                    ![
+                      "audio",
+                      "video",
+                      "image",
+                      "application",
+                      "text",
+                      "font",
+                      "multipart",
+                      "document",
+                      "web",
+                    ].includes(raw)
+                  ) {
+                    throw new Error(
+                      `Found unknown mimeType kind '${raw}' in '${fieldName}'`,
+                    );
+                  }
+                  const res = {
+                    type: raw,
+                  };
+
+                  record(res);
+                  expect(
+                    ")",
+                    `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                  );
+                } else {
+                  record(true);
+                }
+                break;
+              }
+              case "phoneNumber": {
+                if (tastesLike("(")) {
+                  getNextEdible();
+
+                  const rawCountry = swallowString(
+                    `Expected a country code in single quotes after '@${attributeName}('`,
+                  );
+                  const { data: countryCode, success } =
+                    CountryCodeSchema.safeParse(rawCountry);
+                  if (!success) {
+                    throw new Error(
+                      `Found unknown country '${rawCountry}' in '${fieldName}'`,
+                    );
+                  }
+                  const res = {
+                    country: countryCode,
+                  };
+
+                  record(res);
+                  expect(
+                    ")",
+                    `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                  );
+                } else {
+                  record(true);
+                }
+                break;
+              }
+              case "state":
+              case "province":
+              case "region": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const rawCountry = swallowString(
+                  `Expected a country code in single quotes after '@${attributeName}('`,
+                );
+                const { data: countryCode, success } =
+                  CountryCodeSchema.safeParse(rawCountry);
+                if (!success) {
+                  throw new Error(
+                    `Found unknown country '${rawCountry}' in '${fieldName}'`,
+                  );
+                }
+                const res = {
+                  country: countryCode,
+                };
+
+                recordNamed("region", res);
+                expect(
+                  ")",
+                  `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
+                );
+                break;
+              }
+              case "passportNumber":
+              case "nationalIdNumber": {
+                expect(
+                  "(",
+                  `In '${fieldName}' attribute '@${attributeName}', expected '('`,
+                );
+                swallowAir();
+
+                const rawCountry = swallowString(
+                  `Expected a country code in single quotes after '@${attributeName}('`,
+                );
+                const { data: countryCode, success } =
+                  CountryCodeSchema.safeParse(rawCountry);
+                if (!success) {
+                  throw new Error(
+                    `Found unknown country '${rawCountry}' in '${fieldName}'`,
+                  );
+                }
+                const res = {
+                  country: countryCode,
+                };
+
+                record(res);
                 expect(
                   ")",
                   `In '${fieldName}' attribute '@${attributeName}', expected ')'`,
@@ -745,6 +951,7 @@ export const stringBooleanFlags = [
   "lowercase",
   "uppercase",
   "kebabcase",
+  "capitalize",
   "screamingcase",
   "camelcase",
   "pascalcase",
@@ -763,6 +970,7 @@ export const stringBooleanFlags = [
   "cidr",
   "objectId",
   "slug",
+  "slugify",
   "base64",
   "trim",
   "time",
@@ -770,10 +978,23 @@ export const stringBooleanFlags = [
   "date",
   "secret",
   "password",
+  "reverse",
+  "ssn",
+  "html",
+  "json",
+  "csv",
+  // "ean", 8, 8P2, 8P5, 13, 13P2, 13P5, 14, 128
+  // "isbn", 10 or 13
+  "gtin",
+  "upc",
+  "vin",
+  "chessMove",
+  "pgn",
+  "fen",
+  "iban",
+  "creditCardNumber",
 ];
 
 export const listBooleanFlags = ["empty", "nonempty"] as string[];
-
 export const booleanBooleanFlags = ["true", "false"] as string[];
-
 export const dateBooleanFlags = ["future", "past", "updatedAt", "createdAt"];

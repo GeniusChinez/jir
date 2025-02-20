@@ -3,7 +3,7 @@ import { SymbolKindSchema, SymbolSchema, SymbolStatusSchema } from ".";
 import { BooleanSchema } from "../boolean.schema";
 import { EntityOperationsSchema } from "../entity.operations";
 import { ReferenceSchema } from "../reference.schema";
-import { SortOrderSchema } from "src/helpers/sort";
+import { SortOrderSchema } from "src/schemas/sort";
 
 export const RawEntityUniqueKeySchema = z.object({
   name: z.string().optional(),
