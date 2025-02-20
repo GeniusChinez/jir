@@ -32,8 +32,8 @@
       "internationalBankAccountNumber": "string @iban",
       "colors": "string @color('hex') @leftJoin('user_')",
       "padding": "string @padLeft(10, '0')",
-      "sub": "string @substring(1, 10)",
-      "maskingOccurances": "string @maskOccurances('90' ,   'c')"
+      "maskingOccurances": "string @maskOccurances('90' ,   'c')",
+      "sub": "string @substring(1, 0b1000)"
     }
   }
 ]

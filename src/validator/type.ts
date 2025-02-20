@@ -74,22 +74,90 @@ export function parseFieldType(
     getNextEdible(expected.length);
   };
 
+  // const parseNumber = () => {
+  //   let temp = "";
+  //   while (moreFood() && isDigit(taste())) {
+  //     temp += swallow();
+  //   }
+
+  //   if (moreFood() && tastesLike(".")) {
+  //     getNextEdible();
+
+  //     while (moreFood() && matches(isDigit)) {
+  //       temp += swallow();
+  //     }
+
+  //     if (temp.endsWith(".")) {
+  //       temp += "0";
+  //     }
+  //   }
+
+  //   return temp;
+  // };
   const parseNumber = () => {
     let temp = "";
+    let isNegative = false;
+
+    // Check for negative sign at the beginning
+    if (moreFood() && tastesLike("-")) {
+      isNegative = true;
+      getNextEdible();
+    }
+
+    // Check for hexadecimal numbers (0x or 0X)
+    if (moreFood() && (tastesLike("0x") || tastesLike("0X"))) {
+      temp += swallow(); // '0'
+      temp += swallow(); // 'x' or 'X'
+
+      // Parse hexadecimal digits (0-9, a-f, A-F)
+      while (moreFood() && /[0-9a-fA-F]/.test(taste())) {
+        temp += swallow();
+      }
+      return temp;
+    }
+
+    // Check for binary numbers (0b or 0B)
+    if (tastesLike("0b") || tastesLike("0B")) {
+      temp += swallow(); // '0'
+      temp += swallow(); // 'b' or 'B'
+
+      // Parse binary digits (0-1)
+      while (moreFood() && /[01]/.test(taste())) {
+        temp += swallow();
+      }
+      return temp;
+    }
+
+    // Check for octal numbers (starting with 0)
+    if (moreFood() && tastesLike("0")) {
+      temp += swallow(); // '0'
+
+      // Parse octal digits (0-7)
+      while (moreFood() && /[0-7]/.test(taste())) {
+        temp += swallow();
+      }
+      return temp;
+    }
+
+    // Otherwise, parse regular numbers (including decimals)
     while (moreFood() && isDigit(taste())) {
       temp += swallow();
     }
 
+    // Handle decimal point
     if (moreFood() && tastesLike(".")) {
       getNextEdible();
-
-      while (moreFood() && matches(isDigit)) {
+      while (moreFood() && isDigit(taste())) {
         temp += swallow();
       }
-
       if (temp.endsWith(".")) {
         temp += "0";
       }
+    }
+
+    // Add the negative sign to the beginning if it's a negative number
+    if (isNegative) {
+      temp = "-" + temp;
     }
 
     return temp;
