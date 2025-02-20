@@ -1,6 +1,6 @@
 {
   "name": "jir",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "JSON-based database schema (IR) generator, parser, validator, and transformer",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
